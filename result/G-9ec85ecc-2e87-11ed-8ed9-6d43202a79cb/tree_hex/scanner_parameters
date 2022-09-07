@@ -1,9 +1,0 @@
-app_name : zmap
-ins_num : 7
---probe-module=icmp6_echoscan
---ipv6-target-file=result/G-9ec85ecc-2e87-11ed-8ed9-6d43202a79cb/targets.txt
---output-file=result/G-9ec85ecc-2e87-11ed-8ed9-6d43202a79cb/result.txt
---ipv6-source-ip=fd15:4ba5:5a2b:1007:f96a:8a60:e6cb:1191
---bandwidth=1500K
---cooldown-time=4
---verbosity=3

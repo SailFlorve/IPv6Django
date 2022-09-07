@@ -1,6 +1,0 @@
-budget : 15
-step_budget : 3.0
-adet_ptimes : 5
-adet_tsscale_thd : 1024
-adet_aad_thd : 0.95
-adet_crip : 1048576

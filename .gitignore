@@ -129,5 +129,5 @@ dmypy.json
 .pyre/
 
 # Custom
-upload/
-result/
+/result/
+/upload/
