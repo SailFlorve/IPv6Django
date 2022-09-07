@@ -1,0 +1,4 @@
+base_num : 16
+node_num : 1
+num, inf, sup, parent_num, children_num
+1, 0, 0, 0, 0

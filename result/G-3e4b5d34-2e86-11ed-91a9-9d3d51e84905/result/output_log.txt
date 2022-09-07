@@ -1,0 +1,53 @@
+start_workflow
+[2022/9/7 8:22:42][Translation] Start translation.
+状态: 正在预处理...
+Task created. Task id: G-3e4b5d34-2e86-11ed-91a9-9d3d51e84905, use IPv6: fd15:4ba5:5a2b:1007:f96a:8a60:e6cb:1191
+[2022/9/7 8:22:42][Translation] Input and translate data.
+wait for line count, last: 1
+[2022/9/7 8:22:42][Generation] Start space tree generation.
+[2022/9/7 8:22:42][Generation] Input data.
+preprocess finished, line count 1
+Params:
+app_name : zmap
+ins_num : 7
+--probe-module=icmp6_echoscan
+--ipv6-target-file=result/G-3e4b5d34-2e86-11ed-91a9-9d3d51e84905/targets.txt
+--output-file=result/G-3e4b5d34-2e86-11ed-91a9-9d3d51e84905/result.txt
+--ipv6-source-ip=fd15:4ba5:5a2b:1007:f96a:8a60:e6cb:1191
+--bandwidth=1500K
+--cooldown-time=4
+--verbosity=3
+budget : 15
+step_budget : 3.0
+adet_ptimes : 5
+adet_tsscale_thd : 1024
+adet_aad_thd : 0.95
+adet_crip : 1048576
+[2022/9/7 8:22:45][Network search] Start network search.
+Sep 07 08:22:45.699 [INFO] zmap: By default, ZMap will output the unique IP addresses of hosts that respond successfully (e.g., SYN-ACK packet). This is equivalent to running ZMap with the following flags: --output-module=csv --output-fields=saddr --output-filter='success=1 && repeat=0' --no-header-row. If you want all responses, explicitly set an output module or set --output-filter="".
+[2022/9/7 8:22:45][Network search] Prepare space tree.
+[2022/9/7 8:22:45][Network search] Prepare space tree finished.
+[2022/9/7 8:22:45][Network search] Read scanner parameters.
+[2022/9/7 8:22:45][Network search] Read scanner parameters finished.
+剩余预算: 15
+zmap --probe-module=icmp6_echoscan --ipv6-target-file=result/G-3e4b5d34-2e86-11ed-91a9-9d3d51e84905/targets.txt --output-file=result/G-3e4b5d34-2e86-11ed-91a9-9d3d51e84905/result.txt --ipv6-source-ip=fd15:4ba5:5a2b:1007:f96a:8a60:e6cb:1191 --bandwidth=1500K --cooldown-time=4 --verbosity=3
+Copy targets 0
+Sep 07 08:22:46.112 [INFO] recv: duplicate responses will be excluded from output
+Sep 07 08:22:46.112 [INFO] recv: unsuccessful responses will be excluded from output
+ 0:00 0%; send: 5 1 p/s (66 p/s avg); recv: 0 0 p/s (0 p/s avg); drops: 0 p/s (0 p/s avg); hitrate: 0.00%
+活动地址探测: 5 / 16
+ 0:01 26%; send: 16 done (196 p/s avg); recv: 0 0 p/s (0 p/s avg); drops: 0 p/s (0 p/s avg); hitrate: 0.00%
+活动地址探测: 16 / 16
+ 0:02 51%; send: 16 done (196 p/s avg); recv: 0 0 p/s (0 p/s avg); drops: 0 p/s (0 p/s avg); hitrate: 0.00%
+活动地址探测: 16 / 16
+ 0:03 75%; send: 16 done (196 p/s avg); recv: 0 0 p/s (0 p/s avg); drops: 0 p/s (0 p/s avg); hitrate: 0.00%
+活动地址探测: 16 / 16
+ 0:04 100%; send: 16 done (196 p/s avg); recv: 0 0 p/s (0 p/s avg); drops: 0 p/s (0 p/s avg); hitrate: 0.00%
+活动地址探测: 16 / 16
+Sep 07 08:22:51.123 [INFO] zmap: completed
+[2022/9/7 8:22:51]
+Find active addresses: 0, budget remains: -1
+剩余预算: -1
+Generate return code: 0
+generate finished, return 0
+Task G-3e4b5d34-2e86-11ed-91a9-9d3d51e84905 deleted
