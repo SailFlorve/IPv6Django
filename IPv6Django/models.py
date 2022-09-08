@@ -45,6 +45,7 @@ class IPv6TaskModel(models.Model):
 
     class Meta:
         db_table = "tb_ipv6_task"
+        ordering = ["-created_time"]
 
     @staticmethod
     def get_model_by_task_id(task_id):
