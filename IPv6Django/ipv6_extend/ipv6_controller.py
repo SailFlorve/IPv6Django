@@ -223,6 +223,8 @@ class IPv6Controller:
         result_generator = ipv6_workflow.ipv6_generator.processExecutor.terminate()
         result_scanner = ipv6_workflow.ipv6_vulnerability_scanner.processExecutor.terminate()
 
+        CommonTools.clear_task_cache(task_id)
+
         Logger.log_to_file(f"stop preprocessor: {result_preprocessor}", task_id)
         Logger.log_to_file(f"stop generator: {result_generator}", task_id)
         Logger.log_to_file(f"stop scanner: {result_scanner}", task_id)
@@ -239,10 +241,7 @@ class IPv6Controller:
 
         IPv6TaskModel.objects.get(task_id=task_id).delete()
 
-        upload_path = pathlib.Path(Constant.UPLOAD_DIR_PATH) / task_id
-        shutil.rmtree(upload_path, ignore_errors=True)
-        work_path: pathlib.Path = CommonTools.get_work_path(task_id)
-        shutil.rmtree(work_path, ignore_errors=True)
+        CommonTools.delete_task_dir(task_id)
 
         return CustomResponse(Status.OK, "成功")
 
@@ -267,6 +266,7 @@ class IPv6Controller:
         text = log_path.read_text(encoding="utf-8")
         return CustomResponse(Status.OK, "成功", data={"log": text})
 
+    # 此方法只用于清理缓存 此时数据库还未更新完成
     def __on_task_finish(self, task_id):
         model = IPv6TaskModel.objects.get(task_id=task_id)
         model.state = IPv6TaskModel.STATE_FINISH
@@ -274,6 +274,7 @@ class IPv6Controller:
 
         try:
             del self.ipv6_workflow_dict[task_id]
+            CommonTools.clear_task_cache(task_id)
             Logger.log_to_file(f"Task {task_id} deleted", task_id)
         except KeyError:
             pass

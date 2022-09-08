@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import shutil
 import socket
 import subprocess
 import uuid
@@ -59,7 +60,7 @@ class CommonTools:
 
         for ip in ips:
             print(ip[4])
-            if ip[4][0].find(":") != -1 and not ip[4][0].startswith('fe80'):
+            if ip[4][0].find(":") != -1:
                 # 2408 中国联通
                 # 2409 中国移动
                 # 240e 中国电信
@@ -72,7 +73,13 @@ class CommonTools:
             else:
                 return '2001:da8:100e:5000::1:59af'
         else:
-            return host_ipv6[0]
+            all_local_ipv6 = True
+            global_ipv6: str = ""
+            for ipv6 in host_ipv6:
+                if not ipv6.startswith("fe80"):
+                    global_ipv6 = ipv6
+                    all_local_ipv6 = False
+            return host_ipv6[0] if all_local_ipv6 else global_ipv6
 
     @staticmethod
     def line_count(file_path):
@@ -82,6 +89,14 @@ class CommonTools:
         except Exception as e:
             print(e)
             return 0
+
+    @staticmethod
+    def get_dir_size(dir_path: str) -> str:
+        res_list = os.popen(f'du {dir_path} -h --max-depth=0')
+
+        res_list = [x.split('\t') for x in res_list]
+
+        return res_list[0][0]
 
     @staticmethod
     def get_uuid() -> str:
@@ -108,14 +123,54 @@ class CommonTools:
 
     @staticmethod
     def get_work_path(task_id: str) -> pathlib.Path:
+        """
+        result/task_id
+        """
         return pathlib.Path(Constant.RESULT_DIR_PATH) / task_id
 
     @staticmethod
     def get_work_result_path_by_task_id(task_id: str) -> pathlib.Path:
+        """
+        result/task_id/result
+        """
         return CommonTools.get_work_path(task_id) / Constant.RESULT_DIR_PATH
 
     @staticmethod
+    def clear_task_cache(task_id: str):
+        """
+        清除任务缓存
+        """
+        work_path = CommonTools.get_work_path(task_id)
+        if not work_path.exists():
+            return
+
+        cache_path: list[pathlib.Path] = [
+            work_path / Constant.TARGET_TMP_PATH,
+            work_path / Constant.RESULT_TMP_PATH,
+            work_path / Constant.SEEDS_NAME,
+            work_path / Constant.TREE_DIR_PATH
+        ]
+        for path in cache_path:
+            if path.exists():
+                if path.is_dir():
+                    shutil.rmtree(path, ignore_errors=True)
+                else:
+                    path.unlink()
+
+    @staticmethod
+    def delete_task_dir(task_id: str):
+        upload_path = pathlib.Path(Constant.UPLOAD_DIR_PATH) / task_id
+        shutil.rmtree(upload_path, ignore_errors=True)
+        work_path: pathlib.Path = CommonTools.get_work_path(task_id)
+        shutil.rmtree(work_path, ignore_errors=True)
+
+    @staticmethod
     def get_work_result_path_by_work_path(work_path: pathlib.Path) -> pathlib.Path:
+        """
+        result/task_id/result
+        :param work_path: result/task_id
+        """
+
         return work_path / Constant.RESULT_DIR_PATH
 
     @staticmethod

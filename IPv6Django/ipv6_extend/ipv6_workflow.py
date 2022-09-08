@@ -109,11 +109,15 @@ class IPv6Workflow:
         self.generate_result.budget_left = int(self.ipv6_params.budget) - self.all_line_count
         self.generate_result.hit_rate = self.generate_result.total_active / self.all_line_count
 
-        self.__update_result()
         self.__set_current_state(IPv6TaskModel.STATE_FINISH)
 
+        # 先使外部处理缓存文件
         if self.on_task_finished_callback is not None:
             self.on_task_finished_callback(self.task_id)
+
+        # 再统计文件夹size并更新数据库
+        self.__set_dir_size()
+        self.__update_result()
 
     def __on_vulnerability_scan_finished(self, exit_code):
         Logger.log_to_file(f"vulnerability scan finished, exit code {exit_code}", self.task_id)
@@ -126,6 +130,9 @@ class IPv6Workflow:
         self.__set_current_state(IPv6TaskModel.STATE_FINISH)
         if self.on_task_finished_callback is not None:
             self.on_task_finished_callback(self.task_id)
+
+        self.__set_dir_size()
+        self.__update_result()
 
     def __stdout_callback(self, cmd_line):
         Logger.log_to_file(cmd_line, self.task_id)
@@ -202,3 +209,10 @@ class IPv6Workflow:
     def __set_current_state(self, current_state):
         self.current_state = current_state
         IPv6TaskModel.update_state(self.task_id, current_state)
+
+    def __set_dir_size(self):
+        all_file_size = CommonTools.get_dir_size(str(self.work_path.resolve()))
+        result_file_size = CommonTools.get_dir_size(
+            str(CommonTools.get_work_result_path_by_task_id(self.task_id).resolve()))
+        self.generate_result.all_file_size = all_file_size
+        self.generate_result.result_file_size = result_file_size

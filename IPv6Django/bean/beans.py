@@ -71,6 +71,9 @@ class IPv6GenerateTaskResult(BaseBean):
 
     generated_addr_example: str = ""
 
+    result_file_size = ""
+    all_file_size = ""
+
 
 @dataclass
 class IPv6Statistics(BaseBean):
