@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 
-from IPv6Django.bean.beans import Status, PageInfo
+from IPv6Django.bean.beans import Status, PageInfo, BaseBean
 
 
 class CustomResponse(Response):
@@ -22,6 +22,9 @@ class CustomResponse(Response):
             for k, v in msg.items():
                 for i in v:
                     msg = "%s:%s" % (k, i)
+
+        if isinstance(data, BaseBean):
+            data = data.to_dict()
 
         self.data = {'status': code, 'msg': msg, 'data': data}
         if page_info is not None:

@@ -63,11 +63,17 @@ class IPv6VulnerabilityScanner:
 
                 parse_result.append(
                     {'ip': ip,
-
+                     'state': host.status['state'],
                      'ports': ports,
                      'host_script': host_script,
 
                      }
-
+                )
+            else:
+                parse_result.append(
+                    {
+                        'ip': host.address['addr'],
+                        'state': host.status['state'],
+                    }
                 )
         return parse_result

@@ -111,5 +111,22 @@ class IPv6TaskIdAPIView(APIView):
                 return CustomResponse(Status.PARAM_ERROR, msg='参数错误')
 
 
+class ScriptAPIView(APIView):
+
+    def __init__(self):
+        super(ScriptAPIView, self).__init__()
+        self.ipv6_manager = Singleton.get_ipv6_controller()
+
+    @request_verify(require_params=['pageNum', 'pageSize'],
+                    check_types=[CheckType('pageNum', 'int'), CheckType('pageSize', 'int')])
+    def get(self, request: Request):
+        page_num = int(request.query_params.get('pageNum'))
+        page_size = int(request.query_params.get('pageSize'))
+        return self.ipv6_manager.get_scripts(page_num, page_size)
+
+    def post(self, request: Request):
+        return self.ipv6_manager.check_scripts_update()
+
+
 if __name__ == '__main__':
     print(IPv6TaskAPIView.as_view())

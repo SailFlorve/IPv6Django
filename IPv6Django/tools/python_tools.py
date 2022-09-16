@@ -1,5 +1,8 @@
 import os
+import pathlib
 import socket
+
+from bs4 import BeautifulSoup
 
 
 def get_ipv6():
@@ -40,5 +43,16 @@ def _get_subdir_size_bydu(dir, depth=0):
     return subdir_sizes
 
 
+def get_scripts():
+    html_text = pathlib.Path('/root/Desktop/vuln.html').read_text()
+    soup = BeautifulSoup(html_text, 'html.parser')
+    list = []
+    for t in soup.find_all('dt'):
+        name = str(t.next.next).strip()
+        des = str(t.find_next_sibling("dd").next.next).strip()
+        list.append((name, des))
+    print(list)
+
+
 if __name__ == '__main__':
-    print(get_ipv6())
+    get_scripts()

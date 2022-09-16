@@ -18,15 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 
 from IPv6Django import views
-from IPv6Django.views_rest import IPv6TaskAPIView, IPv6TaskIdAPIView
+from IPv6Django.views_rest import IPv6TaskAPIView, IPv6TaskIdAPIView, ScriptAPIView
 
 api_url = [
     url(r'^$', IPv6TaskAPIView.as_view(), name='generic_task'),  # 集合操作
     url(r'/(?P<pk>\S*)$', IPv6TaskIdAPIView.as_view(), name='detail_task'),  # 访问某个特定对象
 ]
 
-api_v1 = [url('^ipv6_task', include(api_url))]  # API 的 v1 版本
-api_versions = [url(r'^v1/', include(api_v1))]
+api_v1_ipv6_task = [url('^ipv6_task', include(api_url)),
+                    url(r'script$', ScriptAPIView.as_view(), name='script')]  # API 的 v1 版本
+
+api_versions = [url(r'^v1/', include(api_v1_ipv6_task))]
 
 urlpatterns = [
     path('admin/', admin.site.urls),

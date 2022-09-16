@@ -11,7 +11,7 @@ from IPv6Django.tools.custom_response import CustomResponse
 class CheckType:
     name: str
     type: str
-    values: list | None = None
+    values: list | None = None  # 可选值
 
 
 def request_verify(require_params: list[str] | None = None,

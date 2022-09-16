@@ -93,5 +93,17 @@ class PageInfo(BaseBean):
     total: int  # 总数
 
 
+@dataclass
+class UpdateInfo(BaseBean):
+    update: int
+    version: str
+
+
+@dataclass
+class VulnScript(BaseBean):
+    name: str
+    description: str
+
+
 if __name__ == '__main__':
     pass

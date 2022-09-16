@@ -5,7 +5,7 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db.models import QuerySet, Q
 from django.http import StreamingHttpResponse, HttpResponse
 
-from IPv6Django.bean.beans import IPv6Params, Status, IPv6Task, PageInfo, IPv6Statistics
+from IPv6Django.bean.beans import IPv6Params, Status, IPv6Task, PageInfo, IPv6Statistics, UpdateInfo, VulnScript
 from IPv6Django.ipv6_extend.constant import Constant
 from IPv6Django.ipv6_extend.ipv6_vuln_scan import IPv6VulnerabilityScanner
 from IPv6Django.ipv6_extend.ipv6_workflow import IPv6Workflow
@@ -210,6 +210,8 @@ class IPv6Controller:
         return response
 
     def stop_task(self, task_name) -> CustomResponse:
+        Logger.log_to_file(f"Stop task - {task_name}")
+
         model = self.__get_model_by_task_name(task_name)
         if model is None:
             return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
@@ -232,6 +234,8 @@ class IPv6Controller:
         return CustomResponse(Status.OK, "成功")
 
     def delete_task(self, task_name):
+        Logger.log_to_file(f"Delete task - {task_name}")
+
         self.stop_task(task_name)
 
         model = self.__get_model_by_task_name(task_name)
@@ -244,6 +248,16 @@ class IPv6Controller:
         CommonTools.delete_task_dir(task_id)
 
         return CustomResponse(Status.OK, "成功")
+
+    def get_scripts(self, page_num, page_size):
+        script_list = Constant.vuln_scripts
+        page_data = [VulnScript(t[0], t[1]).to_dict()
+                     for t in script_list[(page_num - 1) * page_size: page_num * page_size]]
+        page_info = PageInfo(page_num, page_size, len(script_list))
+        return CustomResponse(Status.OK, "成功", page_data, page_info=page_info)
+
+    def check_scripts_update(self):
+        return CustomResponse(Status.OK, "当前已经是最新版本。", UpdateInfo(0, ""))
 
     def __get_model_by_task_name(self, task_name):
         try:
@@ -275,7 +289,7 @@ class IPv6Controller:
         try:
             del self.ipv6_workflow_dict[task_id]
             CommonTools.clear_task_cache(task_id)
-            Logger.log_to_file(f"Task {task_id} deleted", task_id)
+            Logger.log_to_file(f"Task {task_id} released", task_id)
         except KeyError:
             pass
 
