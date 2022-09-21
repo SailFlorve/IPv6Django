@@ -1,3 +1,4 @@
+import json
 import pathlib
 import shutil
 
@@ -144,23 +145,30 @@ class IPv6Controller:
 
         return CustomResponse(msg=msg, data=IPv6TaskSerializer(model).data)
 
-    def parse_vuln_scan_result(self, task_name):
+    def parse_vuln_scan_result(self, task_name: str, page_num: str, page_size: str) -> CustomResponse:
+        if not page_num.isdecimal() or not page_size.isdecimal():
+            return CustomResponse(Status.PARAM_ERROR, "参数错误")
+        page_num = int(page_num)
+        page_size = int(page_size)
+
         model = self.__get_model_by_task_name(task_name)
         if model is None:
             return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
         if model.state != IPv6TaskModel.STATE_FINISH:
             return CustomResponse(Status.TASK_NOT_FINISHED, "任务未完成")
 
-        result_path = CommonTools.get_work_result_path_by_task_id(model.task_id) / (Constant.SCAN_RES_NAME + ".xml")
+        result_path = CommonTools.get_work_result_path_by_task_id(model.task_id) / (Constant.SCAN_RES_NAME + ".json")
         if not result_path.exists():
             return CustomResponse(Status.FILE_NOT_EXIST, "结果文件不存在")
 
         try:
-            nmap_parse_result = IPv6VulnerabilityScanner.parse_xml(result_path)
+            result_obj = json.loads(result_path.read_text())
+            page_data = result_obj[page_num * page_size: (page_num + 1) * page_size]
+            page_info = PageInfo(page_num, page_size, len(result_obj))
+            return CustomResponse(Status.OK, "成功", page_data, page_info)
+
         except Exception as e:
             return CustomResponse(Status.FILE_PARSE_ERROR, "解析结果文件失败" + str(e))
-
-        return CustomResponse(Status.OK, "成功", nmap_parse_result)
 
     def get_task_result(self, task_name, download_type) -> HttpResponse | StreamingHttpResponse:
         m = self.__get_model_by_task_name(task_name)

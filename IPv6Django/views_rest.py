@@ -40,7 +40,7 @@ class IPv6TaskAPIView(APIView):
 
         if task_type == IPv6TaskModel.TYPE_GENERATE:
             if not CommonTools.require_not_none(name, budget, probe, band_width, port):
-                return CustomResponse(Status.LACK_PARAM, msg='参数不能为空')
+                return CustomResponse(Status.LACK_PARAM, msg='name, budget, probe, band_width, port 中的参数不能为空')
 
         return self.ipv6_manager.start_task(task_type, name, f, budget, probe, band_width, port, vuln_params)
 
@@ -60,7 +60,7 @@ class IPv6TaskAPIView(APIView):
         per_page = request.query_params.get("pageSize")
 
         if not CommonTools.require_not_none(c_page, per_page):
-            return CustomResponse(Status.LACK_PARAM, msg='参数不能为空')
+            return CustomResponse(Status.LACK_PARAM, msg='pageNum, pageSize 参数不能为空')
 
         return self.ipv6_manager.get_tasks_from_db(task_type, c_page, per_page, task_name)
 
@@ -91,7 +91,13 @@ class IPv6TaskIdAPIView(APIView):
             case IPv6TaskModel.TYPE_GET_RESULT | IPv6TaskModel.TYPE_GET_ALL | IPv6TaskModel.TYPE_GET_UPLOAD:
                 return self.ipv6_manager.get_task_result(pk, r_type)
             case IPv6TaskModel.TYPE_PARSE_RESULT:
-                return self.ipv6_manager.parse_vuln_scan_result(pk)
+                c_page = request.query_params.get("pageNum")
+                per_page = request.query_params.get("pageSize")
+
+                if not CommonTools.require_not_none(c_page, per_page):
+                    return CustomResponse(Status.LACK_PARAM, msg='pageNum或pageSize 参数不能为空')
+
+                return self.ipv6_manager.parse_vuln_scan_result(pk, c_page, per_page)
             case IPv6TaskModel.TYPE_GET_LOG:
                 return self.ipv6_manager.get_log(pk)
             case _:

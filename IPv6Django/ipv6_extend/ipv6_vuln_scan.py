@@ -1,3 +1,4 @@
+import json
 import pathlib
 from os import PathLike
 
@@ -25,6 +26,17 @@ class IPv6VulnerabilityScanner:
 
     def scan(self):
         def finish_callback(exit_code):
+            try:
+                result_xml_path = CommonTools.get_work_result_path_by_work_path(
+                    self.work_path) / (Constant.SCAN_RES_NAME + ".xml")
+                nmap_parse_result = IPv6VulnerabilityScanner.parse_xml(result_xml_path)
+                result_json_path = CommonTools.get_work_result_path_by_work_path(
+                    self.work_path) / (Constant.SCAN_RES_NAME + '.json')
+                result_json_path.write_text(json.dumps(nmap_parse_result))
+
+            except Exception as e:
+                pass
+
             Logger.log_to_file("scan finished", path=self.work_path)
             if self.on_finish_callback is not None:
                 self.on_finish_callback(exit_code)
