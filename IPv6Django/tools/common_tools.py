@@ -55,6 +55,20 @@ class ExceptionGlobeMiddleware(MiddlewareMixin):
 class CommonTools:
     @staticmethod
     def get_ipv6():
+        try:
+            return CommonTools.get_ipv6_cmd()
+        except subprocess.CalledProcessError:
+            return CommonTools.get_ipv6_socket()
+
+    @staticmethod
+    def get_ipv6_cmd():
+        ipv6 = subprocess.check_output(
+            r"ip -6 addr | grep inet6 | awk -F '[ \t]+|/' '{print $3}' | grep -v ^::1 | grep -v ^fe80", shell=True,
+            encoding="utf-8")
+        return ipv6.split("\n")[0]
+
+    @staticmethod
+    def get_ipv6_socket():
         host_ipv6 = []
         ips = socket.getaddrinfo(socket.gethostname(), 80)
 
@@ -67,11 +81,11 @@ class CommonTools:
                 host_ipv6.append(ip[4][0])
 
         if len(host_ipv6) == 0:
-            # return ""
-            if settings.DEBUG:
-                return '2001:da8:100e:5000::1:59af'
-            else:
-                return '2001:da8:100e:5000::1:59af'
+            return ""
+            # if settings.DEBUG:
+            #     return '2001:da8:100e:5000::1:59af'
+            # else:
+            #     return '2001:da8:100e:5000::1:59af'
         else:
             all_local_ipv6 = True
             global_ipv6: str = ""

@@ -79,8 +79,10 @@ class IPv6Controller:
     def get_tasks_from_db(self, task_type: str, c_page, per_page, task_name: str) -> CustomResponse:
         try:
             task_type = int(task_type)
+            c_page = int(c_page)
+            per_page = int(per_page)
         except ValueError:
-            return CustomResponse(Status.PARAM_ERROR, "参数错误")
+            return CustomResponse(Status.PARAM_ERROR, "task_type、pageNum或pageSize参数错误")
 
         match task_type:
             case IPv6TaskModel.TYPE_GENERATE | IPv6TaskModel.TYPE_VULN_SCAN:
@@ -145,11 +147,12 @@ class IPv6Controller:
 
         return CustomResponse(msg=msg, data=IPv6TaskSerializer(model).data)
 
-    def parse_vuln_scan_result(self, task_name: str, page_num: str, page_size: str) -> CustomResponse:
-        if not page_num.isdecimal() or not page_size.isdecimal():
-            return CustomResponse(Status.PARAM_ERROR, "参数错误")
-        page_num = int(page_num)
-        page_size = int(page_size)
+    def parse_vuln_scan_result(self, task_name: str, page_num: int, page_size: int) -> CustomResponse:
+        try:
+            page_num = int(page_num)
+            page_size = int(page_size)
+        except Exception:
+            return CustomResponse(Status.PARAM_ERROR, "pageNum或pageSize参数错误")
 
         model = self.__get_model_by_task_name(task_name)
         if model is None:
@@ -163,9 +166,10 @@ class IPv6Controller:
 
         try:
             result_obj = json.loads(result_path.read_text())
-            page_data = result_obj[page_num * page_size: (page_num + 1) * page_size]
+            # page_size = 1就不分页
+            page_data = result_obj[(page_num - 1) * page_size: page_num * page_size] if page_size != -1 else result_obj
             page_info = PageInfo(page_num, page_size, len(result_obj))
-            return CustomResponse(Status.OK, "成功", page_data, page_info)
+            return CustomResponse(Status.OK, "成功", page_data, page_info=page_info if page_size != -1 else None)
 
         except Exception as e:
             return CustomResponse(Status.FILE_PARSE_ERROR, "解析结果文件失败" + str(e))
@@ -260,9 +264,11 @@ class IPv6Controller:
     def get_scripts(self, page_num, page_size):
         script_list = Constant.vuln_scripts
         page_data = [VulnScript(t[0], t[1]).to_dict()
-                     for t in script_list[(page_num - 1) * page_size: page_num * page_size]]
+                     for t in  # page_size = 1就不分页
+                     (script_list[(page_num - 1) * page_size: page_num * page_size] if page_size != -1
+                      else script_list)]
         page_info = PageInfo(page_num, page_size, len(script_list))
-        return CustomResponse(Status.OK, "成功", page_data, page_info=page_info)
+        return CustomResponse(Status.OK, "成功", page_data, page_info=page_info if page_size != -1 else None)
 
     def check_scripts_update(self):
         return CustomResponse(Status.OK, "当前已经是最新版本。", UpdateInfo(0, ""))

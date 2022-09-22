@@ -74,9 +74,11 @@ ins_num : {8 if use_port else 7}
         # resultPath = pathlib.Path(f"{Constant.RESULT_TMP_PATH}")
         # resultPath.unlink(missing_ok=True)
 
+        cmd = f"{Constant.LIB_TREE_PATH} -R -in-tree {self.tree_path} " \
+              f"-out-res {str(CommonTools.get_work_result_path_by_work_path(self.work_path))}"
+        Logger.log_to_file(cmd, path=self.work_path)
         self.processExecutor.execute(
-            f"{Constant.LIB_TREE_PATH} -R -in-tree {self.tree_path} "
-            f"-out-res {str(CommonTools.get_work_result_path_by_work_path(self.work_path))}",
+            cmd,
             finished_callback=__on_finish)
 
 

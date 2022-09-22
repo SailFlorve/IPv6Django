@@ -72,8 +72,10 @@ class Tree6Preprocessor(IPv6Preprocessor):
         self.__transform()
 
     def __transform(self):
+        cmd = f"{Constant.LIB_TREE_PATH} -T -in-std {str(self.origin_file_path)} -out-b4 {str(self.seeds_path)}"
+        Logger.log_to_file(cmd, path=self.work_path)
         self.processExecutor.execute(
-            f"{Constant.LIB_TREE_PATH} -T -in-std {str(self.origin_file_path)} -out-b4 {str(self.seeds_path)}",
+            cmd,
             finished_callback=self.__wait_file)
 
     def __generate_tree(self):
@@ -82,6 +84,8 @@ class Tree6Preprocessor(IPv6Preprocessor):
             if self.callback is not None:
                 self.callback(return_code, line_count)
 
+        cmd = f"{Constant.LIB_TREE_PATH} -G -in-b4 {str(self.seeds_path)} -out-tree {str(self.tree_path)}"
+        Logger.log_to_file(cmd, path=self.work_path)
         self.processExecutor.execute(
-            f"{Constant.LIB_TREE_PATH} -G -in-b4 {str(self.seeds_path)} -out-tree {str(self.tree_path)}",
+            cmd,
             finished_callback=__on_finished)

@@ -1,11 +1,28 @@
 import os
 import pathlib
 import socket
+import subprocess
 
 from bs4 import BeautifulSoup
 
+from IPv6Django.tools.process_executor import ProcessExecutor
+
 
 def get_ipv6():
+    try:
+        return get_ipv6_cmd()
+    except subprocess.CalledProcessError:
+        return get_ipv6_socket()
+
+
+def get_ipv6_cmd():
+    ipv6 = subprocess.check_output(
+        r"ip -6 addr | grep inet6 | awk -F '[ \t]+|/' '{print $3}' | grep -v ^::1 | grep -v ^fe80", shell=True,
+        encoding="utf-8")
+    return ipv6.split("\n")[0]
+
+
+def get_ipv6_socket():
     host_ipv6 = []
     ips = socket.getaddrinfo(socket.gethostname(), 80)
 
@@ -18,8 +35,11 @@ def get_ipv6():
             host_ipv6.append(ip[4][0])
 
     if len(host_ipv6) == 0:
-        # return ""
-        return '2001:da8:100e:5000::1:59af'
+        return ""
+        # if settings.DEBUG:
+        #     return '2001:da8:100e:5000::1:59af'
+        # else:
+        #     return '2001:da8:100e:5000::1:59af'
     else:
         all_local_ipv6 = True
         global_ipv6: str = ""
@@ -55,4 +75,4 @@ def get_scripts():
 
 
 if __name__ == '__main__':
-    get_scripts()
+    print(get_ipv6())

@@ -91,8 +91,8 @@ class IPv6TaskIdAPIView(APIView):
             case IPv6TaskModel.TYPE_GET_RESULT | IPv6TaskModel.TYPE_GET_ALL | IPv6TaskModel.TYPE_GET_UPLOAD:
                 return self.ipv6_manager.get_task_result(pk, r_type)
             case IPv6TaskModel.TYPE_PARSE_RESULT:
-                c_page = request.query_params.get("pageNum")
-                per_page = request.query_params.get("pageSize")
+                c_page = request.query_params.get("pageNum", "1")
+                per_page = request.query_params.get("pageSize", "-1")
 
                 if not CommonTools.require_not_none(c_page, per_page):
                     return CustomResponse(Status.LACK_PARAM, msg='pageNum或pageSize 参数不能为空')
@@ -123,11 +123,9 @@ class ScriptAPIView(APIView):
         super(ScriptAPIView, self).__init__()
         self.ipv6_manager = Singleton.get_ipv6_controller()
 
-    @request_verify(require_params=['pageNum', 'pageSize'],
-                    check_types=[CheckType('pageNum', 'int'), CheckType('pageSize', 'int')])
     def get(self, request: Request):
-        page_num = int(request.query_params.get('pageNum'))
-        page_size = int(request.query_params.get('pageSize'))
+        page_num = int(request.query_params.get('pageNum', 1))
+        page_size = int(request.query_params.get('pageSize', -1))
         return self.ipv6_manager.get_scripts(page_num, page_size)
 
     def post(self, request: Request):

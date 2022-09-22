@@ -49,6 +49,7 @@ class IPv6VulnerabilityScanner:
         else:
             nmap_cmd += self.options_str
 
+        Logger.log_to_file(nmap_cmd, path=self.work_path)
         self.processExecutor.execute(nmap_cmd, finished_callback=finish_callback)
 
     @staticmethod
