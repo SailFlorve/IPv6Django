@@ -27,6 +27,9 @@ class StatusInternal(BaseBean):
         self.message = message
 
     def with_extra(self, extra: str) -> 'StatusInternal':
+        """
+        给message附加一些信息，返回自己
+        """
         self.message += f" - {extra}"
         return self
 
@@ -56,7 +59,7 @@ class IPv6Params(BaseBean):
     band_width: str = ""
     port: str = ""
     vuln_params: str = ""
-    valid_upload_addr: int = 0
+    valid_upload_addr: int = 0  # 上传的地址文件中有效的地址数量
 
 
 @dataclass
@@ -70,17 +73,17 @@ class IPv6GenerateTaskResult(BaseBean):
     all_budget: int
     budget_left: int
 
-    current_scan: int = 0
-    all_scan: int = 0
-    current_cmd: str = ""
-    parse_cmd_1: str = ""
-    parse_cmd_2: str = ""
+    current_scan: int = 0  # zmap中的当前扫描进度
+    all_scan: int = 0  # zmap中的总扫描进度
+    current_cmd: str = ""  # 当前原生命令
+    parse_cmd_1: str = ""  # 解析后的命令
+    parse_cmd_2: str = ""  # 解析后的命令，如果上个变量不够用则用这个
 
     total_active: int = 0
     address_generated: int = 0
     hit_rate: float = 0
 
-    generated_addr_example: str = ""
+    generated_addr_example: str = ""  # 用于用json保存一部分生成的地址
 
     result_file_size = ""
     all_file_size = ""

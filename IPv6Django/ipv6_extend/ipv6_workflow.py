@@ -14,6 +14,10 @@ from IPv6Django.tools.common_tools import CommonTools, Logger
 
 
 class IPv6Workflow:
+    """
+    管理一个rIPv6地址预处理、地址扩展探测、漏洞扫描的执行流程，保存执行状态，并处理相关的文件和结果、写入数据库等
+    """
+
     def __init__(self, task_id: str, params: IPv6Params, upload_file):
         self.upload_file = upload_file
         self.task_id: str = task_id
@@ -35,7 +39,7 @@ class IPv6Workflow:
         self.ipv6_generator.processExecutor.stdout_callback = self.__stdout_callback
         self.ipv6_vulnerability_scanner.processExecutor.stdout_callback = self.__stdout_callback
 
-        self.target_index = 0
+        self.target_index = 0  # 地址扩展中另存为生成的target的编号
         self.last_line_count = 0
         self.all_line_count = 0  # targets.txt中的总行数
         self.current_state = IPv6TaskModel.STATE_PREPROCESS
@@ -46,20 +50,23 @@ class IPv6Workflow:
 
     def start_generate_workflow(self):
         Logger.log_to_file("start_workflow", self.task_id)
-        self.__save_file()
+        self.__save_upload_file()
         self.ipv6_preprocessor.set_finished_callback(self.__on_preprocess_finished)
         self.ipv6_preprocessor.run()
 
     def start_vulnerability_scan(self):
         Logger.log_to_file("start_vulnerability_scan", self.task_id)
-        self.__save_file()
+        self.__save_upload_file()
         self.ipv6_vulnerability_scanner.set_on_finish_callback(self.__on_vulnerability_scan_finished)
         self.ipv6_vulnerability_scanner.scan()
 
     def set_on_task_finished_callback(self, callback):
         self.on_task_finished_callback = callback
 
-    def __save_file(self):
+    def __save_upload_file(self):
+        """
+        把用户上传的文件流保存到本地
+        """
         with open(self.file_save_path, 'wb') as destination:
             for chunk in self.upload_file.chunks():
                 destination.write(chunk)
@@ -81,12 +88,14 @@ class IPv6Workflow:
             return
 
         self.ipv6_params.valid_upload_addr = line_count
+
+        # 此处可以从数据库获取到数据，调用ipv6_workflow前已经保存了一条任务记录
         model = IPv6TaskModel.get_model_by_task_id(self.task_id)
         if model is not None:
             model.params = self.ipv6_params.to_json()
             model.save()
 
-        time.sleep(3)
+        time.sleep(1)
         self.ipv6_generator.set_params(self.ipv6_params.budget,
                                        self.ipv6_params.probe,
                                        self.ipv6_params.band_width,
@@ -138,6 +147,7 @@ class IPv6Workflow:
         Logger.log_to_file(cmd_line, self.task_id)
         self.generate_result.current_cmd = cmd_line
 
+        # 漏洞扫描命令不解析
         if self.current_state == IPv6TaskModel.STATE_VULN_SCAN:
             self.__update_result()
             return
@@ -193,6 +203,9 @@ class IPv6Workflow:
         self.__update_result()
 
     def __copy_targets(self):
+        """
+        另存target.txt文件，因为它是临时文件，会被删掉
+        """
         path = self.work_path / Constant.TARGET_DIR_PATH
         path.mkdir(parents=True, exist_ok=True)
 

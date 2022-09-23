@@ -8,6 +8,10 @@ from IPv6Django.tools.process_executor import ProcessExecutor
 
 
 class IPv6Generator:
+    """
+    IPv6地址扩展和探测算法
+    """
+
     def __init__(self, work_path_str: str | PathLike[str]):
         self.processExecutor = ProcessExecutor()
         self.work_path = pathlib.Path(work_path_str)

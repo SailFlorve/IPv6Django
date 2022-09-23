@@ -53,7 +53,7 @@ class IPv6TaskAPIView(APIView):
         typ: int = int(request.query_params.get('type'))
 
         if typ == IPv6TaskModel.TYPE_STATISTICS:
-            return self.ipv6_manager.task_statistics()
+            return self.ipv6_manager.get_task_statistics()
 
         task_type = request.query_params.get('task_type', IPv6TaskModel.TYPE_ALL)
         task_name = request.query_params.get('task_name')

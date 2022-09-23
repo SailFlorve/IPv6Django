@@ -27,6 +27,7 @@ class IPv6VulnerabilityScanner:
     def scan(self):
         def finish_callback(exit_code):
             try:
+                # 解析xml为json
                 result_xml_path = CommonTools.get_work_result_path_by_work_path(
                     self.work_path) / (Constant.SCAN_RES_NAME + ".xml")
                 nmap_parse_result = IPv6VulnerabilityScanner.parse_xml(result_xml_path)

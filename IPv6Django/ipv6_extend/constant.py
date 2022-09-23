@@ -3,19 +3,19 @@ import dataclasses
 
 @dataclasses.dataclass
 class Constant:
-    LIB_TREE_PATH = "lib/6tree_mod_2"
-    LIB_ZMAP_PATH = "zmap"
+    LIB_TREE_PATH = "lib/6tree_mod_2"  # 6Tree的路径
+    LIB_ZMAP_PATH = "zmap"  # zmap的路径
 
-    TREE_DIR_PATH = "tree_hex"
-    RESULT_DIR_PATH = "result"
+    TREE_DIR_PATH = "tree_hex"  # 6Tree的输出目录
+    RESULT_DIR_PATH = "result"  # 结果目录名，例如任务结果一般存放在result/task_id/result，这两个result均为此变量
+    TARGET_DIR_PATH = "targets"  # 生成的地址名，一般存放在result/task_id/targets，这两个result均为此变量
 
-    SEEDS_NAME = f"seeds_hex"
+    SEEDS_NAME = f"seeds_hex"  # 生成的种子文件名
 
-    UPLOAD_DIR_PATH = "upload"
+    UPLOAD_DIR_PATH = "upload"  # 上传文件的目录
 
-    TARGET_DIR_PATH = "targets"
-    TARGET_TMP_PATH = "targets.txt"
-    RESULT_TMP_PATH = "result.txt"
+    TARGET_TMP_PATH = "targets.txt"  # 用于保存6Tree的地址生成结果的临时文件名
+    RESULT_TMP_PATH = "result.txt"  # 用于保存6Tree的探测结果的临时文件名
 
     DEFAULT_PORTS = "443"
 
@@ -23,12 +23,13 @@ class Constant:
     DEFAULT_PROBE = "icmp6_echoscan"
 
     LOG_FILE_NAME = "output_log.txt"
-    SCAN_RES_NAME = "scan_result"
+    SCAN_RES_NAME = "scan_result"  # nmap -oA的输出文件名
 
     ACTIVE_ADDR_FILE = "discovered_addrs"
 
     SCRIPT_DIR_PATH = '/usr/share/nmap/scripts'
 
+    # 保存了nmap的漏洞扫描脚本
     vuln_scripts = [('afp-path-vuln', 'Detects the Mac OS X AFP directory traversal vulnerability, CVE-2010-0533.'),
                     (
                         'broadcast-avahi-dos',

@@ -1,6 +1,6 @@
 class CommandParser:
     """
-    解析库输出的命令
+    解析库输出的命令，从中判断当前类型、进度并提取关键信息
     """
 
     TYPE_START = 4

@@ -17,6 +17,9 @@ from IPv6Django.tools.custom_response import CustomResponse
 
 # noinspection PyMethodMayBeStatic
 class IPv6Controller:
+    """
+    提供view层调用的接口
+    """
 
     def __init__(self):
         self.ipv6_workflow_dict: dict[str, IPv6Workflow] = {}
@@ -58,7 +61,7 @@ class IPv6Controller:
                                      task_name=name,
                                      task_type=task_type,
                                      state=state,
-                                     result_path=workflow.work_path,
+                                     result_path=workflow.work_path,  # work_path在workflow的构造函数中被自动生成
                                      upload_path=workflow.file_save_path,
                                      params=ipv6_params.to_json(),
                                      result="")
@@ -88,11 +91,13 @@ class IPv6Controller:
 
         match task_type:
             case IPv6TaskModel.TYPE_GENERATE | IPv6TaskModel.TYPE_VULN_SCAN:
+                # 按类别查询，task_name可选
                 kwargs_dict = {"task_type": task_type}
                 if not (task_name is None or task_name == ""):
                     kwargs_dict["task_name"] = task_name
                 query_set = IPv6TaskModel.objects.filter(**kwargs_dict)
             case IPv6TaskModel.TYPE_ALL:
+                # 查询所有
                 query_set = IPv6TaskModel.objects.all()
             case _:
                 return CustomResponse(Status.PARAM_ERROR.with_extra("task_type参数错误"))
@@ -107,7 +112,7 @@ class IPv6Controller:
         page_info = PageInfo(int(c_page), paginator.per_page, query_set.count())
         return CustomResponse(Status.OK, page_data.values(), page_info)
 
-    def task_statistics(self):
+    def get_task_statistics(self):
         all_count = IPv6TaskModel.objects.count()
         generate_num = IPv6TaskModel.objects.filter(task_type=IPv6TaskModel.TYPE_GENERATE).count()
         vuln_scan_num = IPv6TaskModel.objects.filter(task_type=IPv6TaskModel.TYPE_VULN_SCAN).count()
@@ -150,6 +155,9 @@ class IPv6Controller:
         return CustomResponse(Status.OK.with_extra(msg), data=IPv6TaskSerializer(model).data)
 
     def parse_vuln_scan_result(self, task_name: str, page_num: int, page_size: int) -> CustomResponse:
+        """
+        解析漏洞扫描结果。其解析结果已经在漏洞扫描结束时生成并保存Json文件，此方法读取那个文件并分页
+        """
         try:
             page_num = int(page_num)
             page_size = int(page_size)
@@ -168,7 +176,7 @@ class IPv6Controller:
 
         try:
             result_obj = json.loads(result_path.read_text())
-            # page_size = 1就不分页
+            # page_size = -1就不分页
             page_data = result_obj[(page_num - 1) * page_size: page_num * page_size] if page_size != -1 else result_obj
             page_info = PageInfo(page_num, page_size, len(result_obj))
             return CustomResponse(Status.OK, page_data, page_info=page_info if page_size != -1 else None)
@@ -177,6 +185,9 @@ class IPv6Controller:
             return CustomResponse(Status.FILE_PARSE_ERROR.with_extra("解析结果文件失败" + str(e)))
 
     def get_task_result(self, task_name, download_type) -> HttpResponse | StreamingHttpResponse:
+        """
+        用于下载zip文件
+        """
         m = self.__get_model_by_task_name(task_name)
         if m is None:
             return CustomResponse(Status.FIELD_NOT_EXIST)
@@ -188,12 +199,12 @@ class IPv6Controller:
 
         dir_list = []
         match download_type:
-            case 1:
+            case IPv6TaskModel.TYPE_GET_RESULT:
                 dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
-            case 2:
+            case IPv6TaskModel.TYPE_GET_ALL:
                 dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
                 dir_list.append(CommonTools.get_work_path(task_id) / Constant.TARGET_DIR_PATH)
-            case 4:
+            case IPv6TaskModel.TYPE_GET_UPLOAD:
                 dir_list.append(str(pathlib.Path(Constant.UPLOAD_DIR_PATH) / task_id))
 
         zip_path = CommonTools.get_work_path(task_id)
@@ -201,6 +212,9 @@ class IPv6Controller:
         return self.__get_zip_response(dir_list, zip_name, zip_path)
 
     def __get_zip_response(self, dir_list, zip_name, zip_path):
+        """
+        创建了一个响应流，包含了zip文件
+        """
         zip_tool = ZipTool()
         for d in dir_list:
             zip_tool.add_dir(d)
@@ -275,6 +289,16 @@ class IPv6Controller:
     def check_scripts_update(self):
         return CustomResponse(Status.OK.with_extra("当前已经是最新版本"), UpdateInfo(0, ""))
 
+    def get_log(self, task_name):
+        model = self.__get_model_by_task_name(task_name)
+        if model is None:
+            return CustomResponse(Status.FIELD_NOT_EXIST)
+        task_id = model.task_id
+
+        log_path = Logger.get_log_path(task_id)
+        text = log_path.read_text(encoding="utf-8")
+        return CustomResponse(Status.OK, data={"log": text})
+
     def __get_model_by_task_name(self, task_name):
         try:
             task_model = IPv6TaskModel.objects.get(task_name=task_name)
@@ -286,17 +310,9 @@ class IPv6Controller:
 
         return task_model
 
-    def get_log(self, task_name):
-        model = self.__get_model_by_task_name(task_name)
-        if model is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST)
-        task_id = model.task_id
-
-        log_path = Logger.get_log_path(task_id)
-        text = log_path.read_text(encoding="utf-8")
-        return CustomResponse(Status.OK, data={"log": text})
-
     # 此方法只用于清理缓存 此时数据库还未更新完成
+    # 在ipv6_workflow的__on_generate_finished和__on_vulnerability_scan_finished中调用后，
+    # 会统计清理后的文件夹大小，再更新到数据库
     def __on_task_finish(self, task_id):
         model = IPv6TaskModel.objects.get(task_id=task_id)
         model.state = IPv6TaskModel.STATE_FINISH
