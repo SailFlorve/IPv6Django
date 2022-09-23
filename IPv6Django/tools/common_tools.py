@@ -29,7 +29,7 @@ def globe_exception_handler(exc, context):
         else:
             msg = '出现错误'
 
-        return CustomResponse(code=response.status_code, msg=msg)
+        return CustomResponse(Status(response.status_code, msg))
 
     return response
 

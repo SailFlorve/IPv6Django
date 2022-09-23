@@ -37,13 +37,13 @@ def request_verify(require_params: list[str] | None = None,
                 if param not in request.query_params \
                         or request.query_params[param] is None \
                         or request.query_params[param] == '':
-                    return CustomResponse(Status.LACK_PARAM, msg=f"缺少参数: {param}")
+                    return CustomResponse(Status.LACK_PARAM.with_extra(f"缺少参数: {param}"))
 
             for form_data in form_data_list:
                 if form_data not in request.data \
                         or request.data[form_data] is None \
                         or request.data[form_data] == '':
-                    return CustomResponse(Status.LACK_PARAM, msg=f"缺少参数: {form_data}")
+                    return CustomResponse(Status.LACK_PARAM.with_extra(f"缺少参数: {form_data}"))
 
             for check_type in check_type_list:
                 if check_type.name not in request.query_params:
@@ -53,20 +53,20 @@ def request_verify(require_params: list[str] | None = None,
                     try:
                         int(request.query_params[check_type.name])
                     except ValueError:
-                        return CustomResponse(code=Status.PARAM_ERROR, msg=f"参数 {check_type.name} 不是整数")
+                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是整数"))
 
                     if check_type.values is not None \
                             and int(request.query_params[check_type.name]) not in check_type.values:
-                        return CustomResponse(code=Status.PARAM_ERROR, msg=f"参数 {check_type.name} 不在可选范围内")
+                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不在可选范围内"))
 
                 elif check_type.type == 'float':
                     try:
                         float(request.query_params[check_type.name])
                     except ValueError:
-                        return CustomResponse(code=Status.PARAM_ERROR, msg=f"参数 {check_type.name} 不是浮点数")
+                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是浮点数"))
                     if check_type.values is not None \
                             and float(request.query_params[check_type.name]) not in check_type.values:
-                        return CustomResponse(code=Status.PARAM_ERROR, msg=f"参数 {check_type.name} 不在可选范围内")
+                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不在可选范围内"))
 
                 elif check_type.type == 'bool':
                     if request.query_params[check_type.name] == 'true':
@@ -74,7 +74,7 @@ def request_verify(require_params: list[str] | None = None,
                     elif request.query_params[check_type.name] == 'false':
                         pass
                     else:
-                        return CustomResponse(code=Status.PARAM_ERROR, msg=f"参数 {check_type.name} 不是布尔值")
+                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是布尔值"))
 
             return func(self, *args, **kwargs)
 

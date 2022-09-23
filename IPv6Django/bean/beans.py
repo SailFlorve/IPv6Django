@@ -17,24 +17,35 @@ class BaseBean:
         return eval(cls.__name__)(**(json.loads(json_str)))
 
 
-@dataclass
-class Status(BaseBean):
-    OK = "10000"
-    ERROR = "10001"
-    LACK_PARAM = "10001"
-    FIELD_NOT_EXIST = "10002"
-    FIELD_EXIST = "10003"
-    NO_IPV6 = "10004"
-    PARAM_ERROR = "10005"
-    TASK_NOT_FINISHED = "10006"
-    FILE_NOT_EXIST = "10007"
-    FILE_PARSE_ERROR = "10008"
-    RESPONSE_ERROR = "10009"
-    TASK_NOT_RUNNING = "10010"
-    SERVER_EXCEPTION = "20000"
-
+class StatusInternal(BaseBean):
     status: str
     message: str
+
+    def __init__(self, status, message):
+        super(StatusInternal, self).__init__()
+        self.status = status
+        self.message = message
+
+    def with_extra(self, extra: str) -> 'StatusInternal':
+        self.message += f" - {extra}"
+        return self
+
+
+class Status(StatusInternal):
+    OK = StatusInternal("10000", "成功")
+    ERROR = StatusInternal("10001", "失败")
+    LACK_PARAM = StatusInternal("10001", "缺少参数")
+    FIELD_NOT_EXIST = StatusInternal("10002", "任务不存在")
+    FIELD_EXIST = StatusInternal("10003", "任务已存在")
+    NO_IPV6 = StatusInternal("10004", "没有可用的IPv6地址")
+    PARAM_ERROR = StatusInternal("10005", "参数错误")
+    TASK_NOT_FINISHED = StatusInternal("10006", "任务未完成")
+    FILE_NOT_EXIST = StatusInternal("10007", "文件不存在")
+    FILE_PARSE_ERROR = StatusInternal("10008", "文件解析错误")
+    RESPONSE_ERROR = StatusInternal("10009", "响应错误")
+    TASK_NOT_RUNNING = StatusInternal("10010", "任务未运行")
+    LOCAL_IPV6 = StatusInternal("10011", "使用了本地IPv6，可能无法正常进行IPv6扫描")
+    SERVER_EXCEPTION = StatusInternal("20000", "服务器异常")
 
 
 @dataclass

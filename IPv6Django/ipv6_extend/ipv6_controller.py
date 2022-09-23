@@ -23,13 +23,15 @@ class IPv6Controller:
 
     def start_task(self, task_type: int, name: str, upload_file, budget=0, probe="", band_width="", port="",
                    vuln_params=""):
-
+        return_status = Status.OK
         ipv6 = CommonTools.get_ipv6()
         if ipv6 == "":
-            return CustomResponse(Status.NO_IPV6, "获取IPv6失败", "")
+            return CustomResponse(Status.NO_IPV6, "")
+        elif ipv6.startswith("fe80"):
+            return_status = Status.LOCAL_IPV6
 
         if IPv6TaskModel.objects.filter(task_name=name).exists():
-            return CustomResponse(Status.FIELD_EXIST, "任务名称已存在")
+            return CustomResponse(Status.FIELD_EXIST)
 
         task_id = f"{'G' if task_type == IPv6TaskModel.TYPE_GENERATE else 'V'}-" + CommonTools.get_uuid()
 
@@ -62,7 +64,7 @@ class IPv6Controller:
                                      result="")
 
         Logger.log_to_file(f"Task created. Task id: {task_id}, use IPv6: {ipv6}", task_id)
-        return CustomResponse(Status.OK, "成功", IPv6Task(task_id, name).to_dict())
+        return CustomResponse(return_status, IPv6Task(task_id, name).to_dict())
 
     def __get_task_id_list_by_dir(self) -> set:
         """
@@ -82,7 +84,7 @@ class IPv6Controller:
             c_page = int(c_page)
             per_page = int(per_page)
         except ValueError:
-            return CustomResponse(Status.PARAM_ERROR, "task_type、pageNum或pageSize参数错误")
+            return CustomResponse(Status.PARAM_ERROR.with_extra("task_type、pageNum或pageSize参数错误"))
 
         match task_type:
             case IPv6TaskModel.TYPE_GENERATE | IPv6TaskModel.TYPE_VULN_SCAN:
@@ -93,17 +95,17 @@ class IPv6Controller:
             case IPv6TaskModel.TYPE_ALL:
                 query_set = IPv6TaskModel.objects.all()
             case _:
-                return CustomResponse(Status.PARAM_ERROR, "task_type参数错误")
+                return CustomResponse(Status.PARAM_ERROR.with_extra("task_type参数错误"))
 
         # serializer = IPv6TaskIdSerializer(query_set, many=True)
         try:
             paginator = Paginator(query_set, per_page)
             page_data: QuerySet = paginator.page(c_page).object_list
         except EmptyPage:
-            return CustomResponse(Status.PARAM_ERROR, "页码错误")
+            return CustomResponse(Status.PARAM_ERROR.with_extra("页码错误"))
 
         page_info = PageInfo(int(c_page), paginator.per_page, query_set.count())
-        return CustomResponse(Status.OK, "成功", page_data.values(), page_info)
+        return CustomResponse(Status.OK, page_data.values(), page_info)
 
     def task_statistics(self):
         all_count = IPv6TaskModel.objects.count()
@@ -125,12 +127,12 @@ class IPv6Controller:
                                          vuln_scan_running_num,
                                          vuln_finished_num)
 
-        return CustomResponse(Status.OK, "成功", ipv6_statistics.to_dict())
+        return CustomResponse(Status.OK, ipv6_statistics.to_dict())
 
     def get_task_state(self, task_name) -> CustomResponse:
         model = self.__get_model_by_task_name(task_name)
         if model is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
 
         msg = "成功"
         match model.state:
@@ -145,44 +147,44 @@ class IPv6Controller:
             case IPv6TaskModel.STATE_ERROR:
                 msg = "任务出错"
 
-        return CustomResponse(msg=msg, data=IPv6TaskSerializer(model).data)
+        return CustomResponse(Status.OK.with_extra(msg), data=IPv6TaskSerializer(model).data)
 
     def parse_vuln_scan_result(self, task_name: str, page_num: int, page_size: int) -> CustomResponse:
         try:
             page_num = int(page_num)
             page_size = int(page_size)
         except Exception:
-            return CustomResponse(Status.PARAM_ERROR, "pageNum或pageSize参数错误")
+            return CustomResponse(Status.PARAM_ERROR.with_extra("pageNum或pageSize参数错误"))
 
         model = self.__get_model_by_task_name(task_name)
         if model is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
         if model.state != IPv6TaskModel.STATE_FINISH:
-            return CustomResponse(Status.TASK_NOT_FINISHED, "任务未完成")
+            return CustomResponse(Status.TASK_NOT_FINISHED)
 
         result_path = CommonTools.get_work_result_path_by_task_id(model.task_id) / (Constant.SCAN_RES_NAME + ".json")
         if not result_path.exists():
-            return CustomResponse(Status.FILE_NOT_EXIST, "结果文件不存在")
+            return CustomResponse(Status.FILE_NOT_EXIST.with_extra("结果文件不存在"))
 
         try:
             result_obj = json.loads(result_path.read_text())
             # page_size = 1就不分页
             page_data = result_obj[(page_num - 1) * page_size: page_num * page_size] if page_size != -1 else result_obj
             page_info = PageInfo(page_num, page_size, len(result_obj))
-            return CustomResponse(Status.OK, "成功", page_data, page_info=page_info if page_size != -1 else None)
+            return CustomResponse(Status.OK, page_data, page_info=page_info if page_size != -1 else None)
 
         except Exception as e:
-            return CustomResponse(Status.FILE_PARSE_ERROR, "解析结果文件失败" + str(e))
+            return CustomResponse(Status.FILE_PARSE_ERROR.with_extra("解析结果文件失败" + str(e)))
 
     def get_task_result(self, task_name, download_type) -> HttpResponse | StreamingHttpResponse:
         m = self.__get_model_by_task_name(task_name)
         if m is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
 
         task_id = m.task_id
         task_set = self.__get_task_id_list_by_dir()
         if task_id not in task_set:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
 
         dir_list = []
         match download_type:
@@ -218,7 +220,7 @@ class IPv6Controller:
             response['Content-Type'] = 'application/octet-stream'
             response['Content-Disposition'] = f'attachment;filename={zip_name}'
         except Exception as e:
-            return CustomResponse(Status.RESPONSE_ERROR, "下载失败", str(e))
+            return CustomResponse(Status.RESPONSE_ERROR.with_extra("下载失败"), str(e))
         return response
 
     def stop_task(self, task_name) -> CustomResponse:
@@ -226,12 +228,12 @@ class IPv6Controller:
 
         model = self.__get_model_by_task_name(task_name)
         if model is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
         task_id = model.task_id
 
         ipv6_workflow = self.ipv6_workflow_dict.get(task_id)
         if ipv6_workflow is None:
-            return CustomResponse(Status.TASK_NOT_RUNNING, "任务未运行")
+            return CustomResponse(Status.TASK_NOT_RUNNING)
 
         result_preprocessor = ipv6_workflow.ipv6_preprocessor.processExecutor.terminate()
         result_generator = ipv6_workflow.ipv6_generator.processExecutor.terminate()
@@ -243,7 +245,7 @@ class IPv6Controller:
         Logger.log_to_file(f"stop generator: {result_generator}", task_id)
         Logger.log_to_file(f"stop scanner: {result_scanner}", task_id)
 
-        return CustomResponse(Status.OK, "成功")
+        return CustomResponse(Status.OK)
 
     def delete_task(self, task_name):
         Logger.log_to_file(f"Delete task - {task_name}")
@@ -252,14 +254,14 @@ class IPv6Controller:
 
         model = self.__get_model_by_task_name(task_name)
         if model is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
         task_id = model.task_id
 
         IPv6TaskModel.objects.get(task_id=task_id).delete()
 
         CommonTools.delete_task_dir(task_id)
 
-        return CustomResponse(Status.OK, "成功")
+        return CustomResponse(Status.OK)
 
     def get_scripts(self, page_num, page_size):
         script_list = Constant.vuln_scripts
@@ -268,10 +270,10 @@ class IPv6Controller:
                      (script_list[(page_num - 1) * page_size: page_num * page_size] if page_size != -1
                       else script_list)]
         page_info = PageInfo(page_num, page_size, len(script_list))
-        return CustomResponse(Status.OK, "成功", page_data, page_info=page_info if page_size != -1 else None)
+        return CustomResponse(Status.OK, page_data, page_info=page_info if page_size != -1 else None)
 
     def check_scripts_update(self):
-        return CustomResponse(Status.OK, "当前已经是最新版本。", UpdateInfo(0, ""))
+        return CustomResponse(Status.OK.with_extra("当前已经是最新版本"), UpdateInfo(0, ""))
 
     def __get_model_by_task_name(self, task_name):
         try:
@@ -287,12 +289,12 @@ class IPv6Controller:
     def get_log(self, task_name):
         model = self.__get_model_by_task_name(task_name)
         if model is None:
-            return CustomResponse(Status.FIELD_NOT_EXIST, "任务不存在")
+            return CustomResponse(Status.FIELD_NOT_EXIST)
         task_id = model.task_id
 
         log_path = Logger.get_log_path(task_id)
         text = log_path.read_text(encoding="utf-8")
-        return CustomResponse(Status.OK, "成功", data={"log": text})
+        return CustomResponse(Status.OK, data={"log": text})
 
     # 此方法只用于清理缓存 此时数据库还未更新完成
     def __on_task_finish(self, task_id):

@@ -5,10 +5,13 @@ from IPv6Django.bean.beans import Status, PageInfo, BaseBean
 
 
 class CustomResponse(Response):
-    def __init__(self, code=Status.OK, msg: str | dict = 'success',
-                 data=None, page_info: PageInfo = None, status=None, template_name=None, headers=None,
+    def __init__(self, status: Status,
+                 data=None, page_info: PageInfo = None, status_origin=None, template_name=None, headers=None,
                  exception=False, content_type=None, **kwargs):
-        super().__init__(None, status=status)
+        super().__init__(None, status=status_origin)
+
+        code = status.status
+        msg = status.message
 
         if isinstance(data, Serializer):
             msg = (
