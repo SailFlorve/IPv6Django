@@ -37,13 +37,17 @@ class IPv6TaskAPIView(APIView):
         port = request.query_params.get('port')
         task_type = int(request.query_params.get('type'))
         vuln_params = request.query_params.get('vuln_params')
+        allow_local_ipv6 = request.query_params.get('local', 0)
 
         if task_type == IPv6TaskModel.TYPE_GENERATE:
             if not CommonTools.require_not_none(name, budget, probe, band_width, port):
                 return CustomResponse(
                     Status.LACK_PARAM.with_extra('name, budget, probe, band_width, port 中的参数不能为空'))
 
-        return self.ipv6_manager.start_task(task_type, name, f, budget, probe, band_width, port, vuln_params)
+        return self.ipv6_manager.start_task(task_type, name,
+                                            f, budget, probe, band_width, port,
+                                            vuln_params,
+                                            int(allow_local_ipv6))
 
     @request_verify(require_params=['type'],
                     check_types=[CheckType('type',

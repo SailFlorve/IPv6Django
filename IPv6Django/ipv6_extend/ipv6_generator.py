@@ -2,7 +2,7 @@ import pathlib
 from abc import abstractmethod
 from os import PathLike
 
-from IPv6Django.ipv6_extend.constant import Constant
+from IPv6Django.constant.constant import Constant
 from IPv6Django.tools.common_tools import CommonTools, Logger
 from IPv6Django.tools.process_executor import ProcessExecutor
 

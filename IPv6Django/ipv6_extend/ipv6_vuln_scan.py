@@ -4,7 +4,7 @@ from os import PathLike
 
 from bs4 import BeautifulSoup
 
-from IPv6Django.ipv6_extend.constant import Constant
+from IPv6Django.constant.constant import Constant
 from IPv6Django.tools.common_tools import Logger, CommonTools
 from IPv6Django.tools.process_executor import ProcessExecutor
 

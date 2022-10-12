@@ -1,14 +1,13 @@
 import json
 import pathlib
-import shutil
 
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import QuerySet, Q
-from django.http import StreamingHttpResponse, HttpResponse
+from django.http import StreamingHttpResponse, HttpResponse, FileResponse
 
 from IPv6Django.bean.beans import IPv6Params, Status, IPv6Task, PageInfo, IPv6Statistics, UpdateInfo, VulnScript
-from IPv6Django.ipv6_extend.constant import Constant
-from IPv6Django.ipv6_extend.ipv6_vuln_scan import IPv6VulnerabilityScanner
+from IPv6Django.constant.constant import Constant
+from IPv6Django.constant.scripts import VulnScripts
 from IPv6Django.ipv6_extend.ipv6_workflow import IPv6Workflow
 from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer
 from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger
@@ -24,14 +23,21 @@ class IPv6Controller:
     def __init__(self):
         self.ipv6_workflow_dict: dict[str, IPv6Workflow] = {}
 
-    def start_task(self, task_type: int, name: str, upload_file, budget=0, probe="", band_width="", port="",
-                   vuln_params=""):
+    def start_task(self, task_type: int, name: str, upload_file,
+                   budget=0, probe="", band_width="", port="",
+                   vuln_params="",
+                   allow_local_ipv6: int = 0):
         return_status = Status.OK
         ipv6 = CommonTools.get_ipv6()
         if ipv6 == "":
             return CustomResponse(Status.NO_IPV6, "")
         elif ipv6.startswith("fe80"):
+            if allow_local_ipv6 == 0:
+                return CustomResponse(Status.LOCAL_IPV6.with_extra(
+                    f"IPv6地址是{ipv6}，为本地回环IPv6地址。如果需要使用此IPv6地址开启任务，请传递参数local=1"))
             return_status = Status.LOCAL_IPV6
+        else:
+            pass
 
         if IPv6TaskModel.objects.filter(task_name=name).exists():
             return CustomResponse(Status.FIELD_EXIST)
@@ -67,7 +73,7 @@ class IPv6Controller:
                                      result="")
 
         Logger.log_to_file(f"Task created. Task id: {task_id}, use IPv6: {ipv6}", task_id)
-        return CustomResponse(return_status, IPv6Task(task_id, name).to_dict())
+        return CustomResponse(return_status, IPv6Task(task_id, name, ipv6).to_dict())
 
     def __get_task_id_list_by_dir(self) -> set:
         """
@@ -204,6 +210,7 @@ class IPv6Controller:
             case IPv6TaskModel.TYPE_GET_ALL:
                 dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
                 dir_list.append(CommonTools.get_work_path(task_id) / Constant.TARGET_DIR_PATH)
+                dir_list.append(CommonTools.get_work_path(task_id) / Constant.SEEDS_DIR)
             case IPv6TaskModel.TYPE_GET_UPLOAD:
                 dir_list.append(str(pathlib.Path(Constant.UPLOAD_DIR_PATH) / task_id))
 
@@ -220,17 +227,17 @@ class IPv6Controller:
             zip_tool.add_dir(d)
         zip_tool.zip(zip_path / zip_name)
 
-        def file_iterator(file_path, chunk_size=4096):
-            with open(file_path, mode='rb') as f:
-                while True:
-                    c = f.read(chunk_size)
-                    if c:
-                        yield c
-                    else:
-                        break
+        # def file_iterator(file_path, chunk_size=4096):
+        #     with open(file_path, mode='rb') as f:
+        #         while True:
+        #             c = f.read(chunk_size)
+        #             if c:
+        #                 yield c
+        #             else:
+        #                 break
 
         try:
-            response = StreamingHttpResponse(file_iterator(zip_path / zip_name))
+            response = FileResponse(open(zip_path / zip_name, 'rb'))
             response['Content-Type'] = 'application/octet-stream'
             response['Content-Disposition'] = f'attachment;filename={zip_name}'
         except Exception as e:
@@ -238,12 +245,13 @@ class IPv6Controller:
         return response
 
     def stop_task(self, task_name) -> CustomResponse:
-        Logger.log_to_file(f"Stop task - {task_name}")
 
         model = self.__get_model_by_task_name(task_name)
         if model is None:
             return CustomResponse(Status.FIELD_NOT_EXIST)
         task_id = model.task_id
+
+        Logger.log_to_file(f"Stop task - {task_name}", task_id)
 
         ipv6_workflow = self.ipv6_workflow_dict.get(task_id)
         if ipv6_workflow is None:
@@ -262,14 +270,15 @@ class IPv6Controller:
         return CustomResponse(Status.OK)
 
     def delete_task(self, task_name):
-        Logger.log_to_file(f"Delete task - {task_name}")
-
-        self.stop_task(task_name)
 
         model = self.__get_model_by_task_name(task_name)
         if model is None:
             return CustomResponse(Status.FIELD_NOT_EXIST)
         task_id = model.task_id
+
+        Logger.log_to_file(f"Delete task - {task_name}", task_id)
+
+        self.stop_task(task_name)
 
         IPv6TaskModel.objects.get(task_id=task_id).delete()
 
@@ -278,7 +287,7 @@ class IPv6Controller:
         return CustomResponse(Status.OK)
 
     def get_scripts(self, page_num, page_size):
-        script_list = Constant.vuln_scripts
+        script_list = VulnScripts.vuln_scripts
         page_data = [VulnScript(t[0], t[1]).to_dict()
                      for t in  # page_size = 1就不分页
                      (script_list[(page_num - 1) * page_size: page_num * page_size] if page_size != -1

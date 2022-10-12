@@ -11,9 +11,8 @@ from django.http import HttpResponse, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework.views import exception_handler
 
-from IPv6Django import settings
 from IPv6Django.bean.beans import BaseBean, Status
-from IPv6Django.ipv6_extend.constant import Constant
+from IPv6Django.constant.constant import Constant
 from IPv6Django.tools.custom_response import CustomResponse
 
 
@@ -161,7 +160,7 @@ class CommonTools:
         cache_path: list[pathlib.Path] = [
             work_path / Constant.TARGET_TMP_PATH,
             work_path / Constant.RESULT_TMP_PATH,
-            work_path / Constant.SEEDS_NAME,
+            # work_path / Constant.SEEDS_NAME,
             work_path / Constant.TREE_DIR_PATH
         ]
         for path in cache_path:
@@ -223,6 +222,9 @@ class Logger:
         :param task_id:
         :param path: 工作路径，默认应是result/task_id
         """
+
+        if task_id is None and path is None:
+            raise Exception("task_id和path不能同时为空")
 
         path = Logger.get_log_path(task_id, path)
         print(content)

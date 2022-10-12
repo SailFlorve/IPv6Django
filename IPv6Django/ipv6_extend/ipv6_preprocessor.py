@@ -4,7 +4,7 @@ from abc import abstractmethod
 from os import PathLike
 from typing import Callable
 
-from IPv6Django.ipv6_extend.constant import Constant
+from IPv6Django.constant.constant import Constant
 from IPv6Django.tools.common_tools import CommonTools, Logger
 from IPv6Django.tools.process_executor import ProcessExecutor
 
@@ -30,8 +30,10 @@ class Tree6Preprocessor(IPv6Preprocessor):
         super(Tree6Preprocessor, self).__init__(origin_file_path_str, work_path_str)
 
         self.tree_path = (self.work_path / Constant.TREE_DIR_PATH)
-        self.seeds_path = (self.work_path / Constant.SEEDS_NAME)
+        self.seeds_path = (self.work_path / Constant.SEEDS_PATH)
         self.callback: Callable[[int, int], None] | None = None  # return code, line count
+
+        self.seeds_path.parent.mkdir(parents=True, exist_ok=True)
 
     def set_finished_callback(self, callback: Callable[[int, int], None]):
         self.callback = callback
@@ -60,12 +62,17 @@ class Tree6Preprocessor(IPv6Preprocessor):
 
         # 等待文件生成
         path = self.seeds_path
+        Logger.log_to_file("wait for seeds_hex", path=self.work_path)
+
+        time_interval = 0.1
         while not path.exists():
-            Logger.log_to_file("wait for seeds_hex", path=self.work_path)
-            time.sleep(0.1)
+            time.sleep(time_interval)
             times += 1
-            # if times > 50:
-            #     return
+            if times % 600 == 0:
+                Logger.log_to_file(f"wait for seeds_hex for {times * time_interval} seconds", path=self.work_path)
+
+            if times > 6000:
+                raise Exception("wait for seeds_hex timeout")
 
         line_count = CommonTools.line_count(self.seeds_path)
         last_line_count = line_count
@@ -73,7 +80,7 @@ class Tree6Preprocessor(IPv6Preprocessor):
         # 等待文件完全写入，即行数不再变化
         while True:
             Logger.log_to_file(f"wait for line count, last: {last_line_count}", path=self.work_path)
-            time.sleep(0.1)
+            time.sleep(time_interval)
             line_count = CommonTools.line_count(self.seeds_path)
             if last_line_count == line_count:
                 break

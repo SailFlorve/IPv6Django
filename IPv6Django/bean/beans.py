@@ -18,19 +18,18 @@ class BaseBean:
 
 
 class StatusInternal(BaseBean):
-    status: str
-    message: str
-
     def __init__(self, status, message):
         super(StatusInternal, self).__init__()
         self.status = status
-        self.message = message
+        self.__message_dict = {"title": message}
+        self.message = str(self.__message_dict)
 
     def with_extra(self, extra: str) -> 'StatusInternal':
         """
         给message附加一些信息，返回自己
         """
-        self.message += f" - {extra}"
+        self.__message_dict["detail"] = extra
+        self.message = str(self.__message_dict)
         return self
 
 
@@ -66,6 +65,7 @@ class IPv6Params(BaseBean):
 class IPv6Task(BaseBean):
     task_id: str
     task_name: str
+    ipv6: str
 
 
 @dataclass
