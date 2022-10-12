@@ -4,7 +4,7 @@ import time
 from typing import Callable
 
 from IPv6Django.bean.beans import IPv6Params, IPv6GenerateTaskResult
-from IPv6Django.ipv6_extend.command_parser import CommandParser
+from IPv6Django.tools.command_parser import CommandParser
 from IPv6Django.ipv6_extend.constant import Constant
 from IPv6Django.ipv6_extend.ipv6_generator import Tree6Generator
 from IPv6Django.ipv6_extend.ipv6_preprocessor import Tree6Preprocessor
