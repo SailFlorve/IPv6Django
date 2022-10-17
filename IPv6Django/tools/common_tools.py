@@ -4,51 +4,17 @@ import pathlib
 import shutil
 import socket
 import subprocess
+import urllib.request
 import uuid
 import zipfile
 
-from django.http import HttpResponse, JsonResponse
-from django.utils.deprecation import MiddlewareMixin
-from rest_framework.views import exception_handler
+from bs4 import BeautifulSoup
+from django.http import HttpResponse
 
-from IPv6Django.bean.beans import BaseBean, Status
+from IPv6Django.bean.beans import BaseBean
 from IPv6Django.constant.constant import Constant
-from IPv6Django.tools.custom_response import CustomResponse
-
-
-def globe_exception_handler(exc, context):
-    response = exception_handler(exc, context)
-    request = context['request']
-
-    if response is not None:
-        if isinstance(response.data, list):
-            msg = '; '.join(response.data)
-        elif isinstance(response.data, str):
-            msg = response.data
-        else:
-            msg = '出现错误'
-
-        return CustomResponse(Status(response.status_code, msg))
-
-    return response
-
-
-class ExceptionGlobeMiddleware(MiddlewareMixin):
-    """
-        Below is the global exception handler of django
-    """
-
-    def process_exception(self, request, exception):
-        print(type(exception))
-        # 直接抛出 django admin 的异常
-        if str(request.path).startswith('/admin/'):
-            return None
-
-        print(exception)
-
-        # 捕获其他异常，直接返回 500
-        status = Status(Status.SERVER_EXCEPTION, f"服务器异常: {exception}")
-        return JsonResponse(status.to_dict(), status=500)
+from IPv6Django.constant.scripts import VulnScripts
+from IPv6Django.models import VulnScriptModel
 
 
 class CommonTools:
@@ -251,6 +217,35 @@ class ZipTool:
                 zip_h.write(os.path.join(root, file),
                             os.path.relpath(os.path.join(root, file),
                                             os.path.join(path, '..')))
+
+
+class VulnScriptManager:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def init_db_if_empty():
+        if len(VulnScriptModel.objects.all()) != 0:
+            return
+
+        scripts_local = VulnScripts.vuln_scripts
+        for script_tuple in scripts_local:
+            model = VulnScriptModel(name=script_tuple[0], description=script_tuple[1])
+            model.save()
+
+    @staticmethod
+    def load_scripts() -> list[VulnScriptModel]:
+        result_list = []
+        urlopen = urllib.request.urlopen("https://nmap.org/nsedoc/categories/vuln.html")
+        bs4 = BeautifulSoup(urlopen.read())
+        # bs4.findAll('dt')[0].next.next
+        # bs4.findAll('dt')[0].nextSibling.next.next.next
+        all_dt = bs4.findAll('dt')
+        for dt in all_dt:
+            vuln_name = str(dt.next.next).strip()
+            vuln_des = str(dt.nextSibling.next.next.next).strip()
+            result_list.append(VulnScriptModel(vuln_name, vuln_des))
+        return result_list
 
 
 if __name__ == '__main__':

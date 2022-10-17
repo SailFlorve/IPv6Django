@@ -60,6 +60,7 @@ local_settings.py
 db_debug.sqlite3
 db.sqlite3
 db.sqlite3-journal
+*.sqlite3
 
 # Flask stuff:
 instance/
@@ -132,4 +133,3 @@ dmypy.json
 /result/
 /upload/
 migrations/
-/.idea/

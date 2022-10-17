@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 
-from IPv6Django.tools.common_tools import globe_exception_handler
+from IPv6Django.tools.exception_handler import globe_exception_handler
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -51,7 +51,7 @@ MIDDLEWARE = [
 ]
 
 if not DEBUG:
-    MIDDLEWARE.append('IPv6Django.tools.common_tools.ExceptionGlobeMiddleware')
+    MIDDLEWARE.append('IPv6Django.tools.exception_handler.ExceptionGlobeMiddleware')
 
 ROOT_URLCONF = 'IPv6Django.urls'
 
@@ -72,7 +72,7 @@ TEMPLATES = [
     },
 ]
 REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'IPv6Django.tools.common_tools.globe_exception_handler'
+    'EXCEPTION_HANDLER': 'IPv6Django.tools.exception_handler.globe_exception_handler'
 }
 
 WSGI_APPLICATION = 'IPv6Django.wsgi.application'
@@ -80,17 +80,11 @@ WSGI_APPLICATION = 'IPv6Django.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASE_ROUTERS = ('IPv6Django.dbrouters.MyDBRouter',)
 sqlite_name = 'db.sqlite3' if not DEBUG else 'db_debug.sqlite3'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / sqlite_name,
-    },
-
-    'vuln': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / "vuln.sqlite3",
     }
 }
 

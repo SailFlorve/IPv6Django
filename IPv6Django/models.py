@@ -83,9 +83,9 @@ class IPv6TaskSerializer(serializers.ModelSerializer):
 class VulnScriptModel(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
     description = models.TextField(default="")
-
     class Meta:
         db_table = "tb_vuln_script"
+        ordering = ["name"]
 
 
 if __name__ == '__main__':

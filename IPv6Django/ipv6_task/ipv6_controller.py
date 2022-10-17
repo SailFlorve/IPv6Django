@@ -8,9 +8,9 @@ from django.http import StreamingHttpResponse, HttpResponse, FileResponse
 from IPv6Django.bean.beans import IPv6Params, Status, IPv6Task, PageInfo, IPv6Statistics, UpdateInfo, VulnScript
 from IPv6Django.constant.constant import Constant
 from IPv6Django.constant.scripts import VulnScripts
-from IPv6Django.ipv6_extend.ipv6_workflow import IPv6Workflow
-from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer
-from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger
+from IPv6Django.ipv6_task.ipv6_workflow import IPv6Workflow
+from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer, VulnScriptModel
+from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger, VulnScriptManager
 from IPv6Django.tools.custom_response import CustomResponse
 
 
@@ -287,16 +287,39 @@ class IPv6Controller:
         return CustomResponse(Status.OK)
 
     def get_scripts(self, page_num, page_size):
-        script_list = VulnScripts.vuln_scripts
-        page_data = [VulnScript(t[0], t[1]).to_dict()
-                     for t in  # page_size = 1就不分页
-                     (script_list[(page_num - 1) * page_size: page_num * page_size] if page_size != -1
-                      else script_list)]
-        page_info = PageInfo(page_num, page_size, len(script_list))
-        return CustomResponse(Status.OK, page_data, page_info=page_info if page_size != -1 else None)
+        VulnScriptManager.init_db_if_empty()
+
+        query_set = VulnScriptModel.objects.all()
+        paginator = Paginator(query_set, page_size)
+        page_data: QuerySet = paginator.page(page_num).object_list
+
+        page_info = PageInfo(page_num, page_size, query_set.count())
+        return CustomResponse(Status.OK, page_data.values(), page_info=page_info if page_size != -1 else None)
 
     def check_scripts_update(self):
-        return CustomResponse(Status.OK.with_extra("当前已经是最新版本"), UpdateInfo(0, ""))
+        try:
+            scripts = VulnScriptManager.load_scripts()
+        except Exception as e:
+            return CustomResponse(Status.UPDATE_SCRIPTS_ERROR.with_extra(str(e)))
+
+        loaded_scripts_set = frozenset(scripts)
+        query_set = VulnScriptModel.objects.all()
+        local_scripts_set = frozenset([model for model in query_set])
+
+        if loaded_scripts_set == local_scripts_set:
+            return CustomResponse(Status.OK.with_extra("当前已经是最新版本"), UpdateInfo(0, ""))
+        else:
+            for script_model in scripts:
+                VulnScriptModel.objects.get_or_create(name=script_model.name, description=script_model.description)
+            scripts_diff = len(loaded_scripts_set.difference(local_scripts_set))
+            return CustomResponse(Status.OK.with_extra(f"更新了{scripts_diff}条数据"), UpdateInfo(scripts_diff, ""))
+
+    def delete_scripts(self):
+        try:
+            VulnScriptModel.objects.all().delete()
+            return CustomResponse(Status.OK)
+        except Exception as e:
+            return CustomResponse(Status.DELETE_ERROR.with_extra(str(e)))
 
     def get_log(self, task_name):
         model = self.__get_model_by_task_name(task_name)

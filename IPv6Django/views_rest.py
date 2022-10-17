@@ -128,6 +128,9 @@ class ScriptAPIView(APIView):
         super(ScriptAPIView, self).__init__()
         self.ipv6_manager = Singleton.get_ipv6_controller()
 
+    @request_verify(require_params=['pageNum', 'pageSize'],
+                    check_types=[CheckType('pageNum', 'int'),
+                                 CheckType('pageSize', 'int')])
     def get(self, request: Request):
         page_num = int(request.query_params.get('pageNum', 1))
         page_size = int(request.query_params.get('pageSize', -1))
@@ -135,6 +138,9 @@ class ScriptAPIView(APIView):
 
     def post(self, request: Request):
         return self.ipv6_manager.check_scripts_update()
+
+    def delete(self, request: Request):
+        return self.ipv6_manager.delete_scripts()
 
 
 if __name__ == '__main__':

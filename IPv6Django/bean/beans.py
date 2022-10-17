@@ -47,6 +47,9 @@ class Status(StatusInternal):
     RESPONSE_ERROR = StatusInternal("10009", "响应错误")
     TASK_NOT_RUNNING = StatusInternal("10010", "任务未运行")
     LOCAL_IPV6 = StatusInternal("10011", "使用了本地IPv6，可能无法正常进行IPv6扫描")
+    DELETE_ERROR = StatusInternal("10012", "删除失败")
+    UPDATE_SCRIPTS_ERROR = StatusInternal("10012", "更新脚本失败")
+
     SERVER_EXCEPTION = StatusInternal("20000", "服务器异常")
 
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="70d6da3f-32de-4236-b84f-7443bb4268a5" name="Deepin" url="http://localhost">
+        <fileTransfer accessType="SFTP" host="127.0.0.1" port="22" sshConfigId="6f768c23-133c-46c3-932e-56e65958cb98" sshConfig="root@127.0.0.1:22 password">
+          <advancedOptions>
+            <advancedOptions keepAliveTimeout="0" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

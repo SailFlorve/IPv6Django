@@ -1,4 +1,4 @@
-from IPv6Django.ipv6_extend.ipv6_controller import IPv6Controller
+from IPv6Django.ipv6_task.ipv6_controller import IPv6Controller
 
 ipv6_controller = IPv6Controller()
 

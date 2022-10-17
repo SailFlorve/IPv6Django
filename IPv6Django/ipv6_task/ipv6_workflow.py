@@ -6,9 +6,9 @@ from typing import Callable
 from IPv6Django.bean.beans import IPv6Params, IPv6GenerateTaskResult
 from IPv6Django.tools.command_parser import CommandParser
 from IPv6Django.constant.constant import Constant
-from IPv6Django.ipv6_extend.ipv6_generator import Tree6Generator
-from IPv6Django.ipv6_extend.ipv6_preprocessor import Tree6Preprocessor
-from IPv6Django.ipv6_extend.ipv6_vuln_scan import IPv6VulnerabilityScanner
+from IPv6Django.ipv6_task.ipv6_generator import Tree6Generator
+from IPv6Django.ipv6_task.ipv6_preprocessor import Tree6Preprocessor
+from IPv6Django.ipv6_task.ipv6_vuln_scan import IPv6VulnerabilityScanner
 from IPv6Django.models import IPv6TaskModel
 from IPv6Django.tools.common_tools import CommonTools, Logger
 
