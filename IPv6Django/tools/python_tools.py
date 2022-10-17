@@ -2,6 +2,7 @@ import os
 import pathlib
 import socket
 import subprocess
+import urllib.request
 
 from bs4 import BeautifulSoup
 
@@ -64,15 +65,18 @@ def _get_subdir_size_bydu(dir, depth=0):
 
 
 def get_scripts():
-    html_text = pathlib.Path('/root/Desktop/vuln.html').read_text()
-    soup = BeautifulSoup(html_text, 'html.parser')
-    list = []
-    for t in soup.find_all('dt'):
-        name = str(t.next.next).strip()
-        des = str(t.find_next_sibling("dd").next.next).strip()
-        list.append((name, des))
-    print(list)
+    result_dict = {}
+    urlopen = urllib.request.urlopen("https://nmap.org/nsedoc/categories/vuln.html")
+    bs4 = BeautifulSoup(urlopen.read())
+    # bs4.findAll('dt')[0].next.next
+    # bs4.findAll('dt')[0].nextSibling.next.next.next
+    all_dt = bs4.findAll('dt')
+    for dt in all_dt:
+        vuln_name = str(dt.next.next).strip()
+        vuln_des = str(dt.nextSibling.next.next.next).strip()
+        result_dict[vuln_name] = vuln_des
+    return result_dict
 
 
 if __name__ == '__main__':
-    print(get_ipv6())
+    print(get_scripts())

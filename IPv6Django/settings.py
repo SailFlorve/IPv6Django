@@ -80,11 +80,17 @@ WSGI_APPLICATION = 'IPv6Django.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+DATABASE_ROUTERS = ('IPv6Django.dbrouters.MyDBRouter',)
 sqlite_name = 'db.sqlite3' if not DEBUG else 'db_debug.sqlite3'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / sqlite_name,
+    },
+
+    'vuln': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / "vuln.sqlite3",
     }
 }
 
