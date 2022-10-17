@@ -132,3 +132,4 @@ dmypy.json
 /result/
 /upload/
 migrations/
+/.idea/
