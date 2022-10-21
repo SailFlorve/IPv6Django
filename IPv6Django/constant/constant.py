@@ -10,9 +10,12 @@ class Constant:
     RESULT_DIR_PATH = "result"  # 结果目录名，例如任务结果一般存放在result/task_id/result，这两个result均为此变量
     TARGET_DIR_PATH = "targets"  # 生成的地址名，一般存放在result/task_id/targets，这两个result均为此变量
 
-    SEEDS_DIR = f"seeds"  # 生成的种子文件名
+    PREPROCESS_DIR = f"preprocess"  # 生成的种子文件名
     SEEDS_NAME = f"seeds.txt"  # 生成的种子文件名
-    SEEDS_PATH = f"{SEEDS_DIR}/{SEEDS_NAME}"  # 生成的种子文件路径
+    SEEDS_PATH = f"{PREPROCESS_DIR}/{SEEDS_NAME}"  # 生成的种子文件路径
+    TREE_INFO_NAME = "tree_info"
+    VEC_SEQ_INFO_NAME = "vec_seq_info"
+    POLICY_NAME = "policy.txt"
 
     UPLOAD_DIR_PATH = "upload"  # 上传文件的目录
 

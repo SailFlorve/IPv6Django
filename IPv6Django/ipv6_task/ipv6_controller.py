@@ -5,9 +5,8 @@ from django.core.paginator import Paginator, EmptyPage
 from django.db.models import QuerySet, Q
 from django.http import StreamingHttpResponse, HttpResponse, FileResponse
 
-from IPv6Django.bean.beans import IPv6Params, Status, IPv6Task, PageInfo, IPv6Statistics, UpdateInfo, VulnScript
+from IPv6Django.bean.beans import IPv6TaskParams, Status, IPv6Task, PageInfo, IPv6Statistics, UpdateInfo
 from IPv6Django.constant.constant import Constant
-from IPv6Django.constant.scripts import VulnScripts
 from IPv6Django.ipv6_task.ipv6_workflow import IPv6Workflow
 from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer, VulnScriptModel
 from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger, VulnScriptManager
@@ -23,57 +22,45 @@ class IPv6Controller:
     def __init__(self):
         self.ipv6_workflow_dict: dict[str, IPv6Workflow] = {}
 
-    def start_task(self, task_type: int, name: str, upload_file,
-                   budget=0, probe="", band_width="", port="",
-                   vuln_params="",
-                   allow_local_ipv6: int = 0):
+    def start_task(self, f, params: IPv6TaskParams):
+
+        if IPv6TaskModel.objects.filter(task_name=params.task_name).exists():
+            return CustomResponse(Status.FIELD_EXIST)
+
         return_status = Status.OK
         ipv6 = CommonTools.get_ipv6()
         if ipv6 == "":
             return CustomResponse(Status.NO_IPV6, "")
         elif ipv6.startswith("fe80"):
-            if allow_local_ipv6 == 0:
+            if params.allow_local_ipv6 == 0:
                 return CustomResponse(Status.LOCAL_IPV6.with_extra(
                     f"IPv6地址是{ipv6}，为本地回环IPv6地址。如果需要使用此IPv6地址开启任务，请传递参数local=1"))
             return_status = Status.LOCAL_IPV6
         else:
             pass
 
-        if IPv6TaskModel.objects.filter(task_name=name).exists():
-            return CustomResponse(Status.FIELD_EXIST)
+        params.ipv6 = ipv6
 
-        task_id = f"{'G' if task_type == IPv6TaskModel.TYPE_GENERATE else 'V'}-" + CommonTools.get_uuid()
+        task_id = CommonTools.get_task_id(params.task_type)
 
-        if task_type == IPv6TaskModel.TYPE_GENERATE:
-            ipv6_params = IPv6Params(ipv6, budget, probe, band_width, port, vuln_params)
-        else:
-            ipv6_params = IPv6Params(ipv6, vuln_params=vuln_params)
-
-        workflow = IPv6Workflow(task_id,
-                                ipv6_params,
-                                upload_file)
+        workflow = IPv6Workflow.create(params.task_type, task_id,
+                                       params, f)
         workflow.set_on_task_finished_callback(self.__on_task_finish)
         self.ipv6_workflow_dict[task_id] = workflow
 
-        if task_type == IPv6TaskModel.TYPE_GENERATE:
-            workflow.start_generate_workflow()
-        else:
-            workflow.start_vulnerability_scan()
+        workflow.start()
 
-        state = IPv6TaskModel.STATE_PREPROCESS if task_type == IPv6TaskModel.TYPE_GENERATE \
-            else IPv6TaskModel.STATE_VULN_SCAN
-        workflow.current_state = state
         IPv6TaskModel.objects.create(task_id=task_id,
-                                     task_name=name,
-                                     task_type=task_type,
-                                     state=state,
+                                     task_name=params.task_name,
+                                     task_type=params.task_type,
+                                     state=workflow.current_state,
                                      result_path=workflow.work_path,  # work_path在workflow的构造函数中被自动生成
                                      upload_path=workflow.file_save_path,
-                                     params=ipv6_params.to_json(),
+                                     params=params.to_json(),
                                      result="")
 
         Logger.log_to_file(f"Task created. Task id: {task_id}, use IPv6: {ipv6}", task_id)
-        return CustomResponse(return_status, IPv6Task(task_id, name, ipv6).to_dict())
+        return CustomResponse(return_status, IPv6Task(task_id, params.task_name, ipv6).to_dict())
 
     def __get_task_id_list_by_dir(self) -> set:
         """
@@ -96,7 +83,7 @@ class IPv6Controller:
             return CustomResponse(Status.PARAM_ERROR.with_extra("task_type、pageNum或pageSize参数错误"))
 
         match task_type:
-            case IPv6TaskModel.TYPE_GENERATE | IPv6TaskModel.TYPE_VULN_SCAN:
+            case IPv6TaskModel.TYPE_GENERATE | IPv6TaskModel.TYPE_VULN_SCAN | IPv6TaskModel.TYPE_STABILITY:
                 # 按类别查询，task_name可选
                 kwargs_dict = {"task_type": task_type}
                 if not (task_name is None or task_name == ""):
@@ -120,23 +107,17 @@ class IPv6Controller:
 
     def get_task_statistics(self):
         all_count = IPv6TaskModel.objects.count()
-        generate_num = IPv6TaskModel.objects.filter(task_type=IPv6TaskModel.TYPE_GENERATE).count()
-        vuln_scan_num = IPv6TaskModel.objects.filter(task_type=IPv6TaskModel.TYPE_VULN_SCAN).count()
-        generate_running_num = IPv6TaskModel.objects.filter(~Q(state=IPv6TaskModel.STATE_FINISH),
-                                                            task_type=IPv6TaskModel.TYPE_GENERATE).count()
-        generate_finished_num = IPv6TaskModel.objects.filter(state=IPv6TaskModel.STATE_FINISH,
-                                                             task_type=IPv6TaskModel.TYPE_GENERATE).count()
-        vuln_scan_running_num = IPv6TaskModel.objects.filter(~Q(state=IPv6TaskModel.STATE_FINISH),
-                                                             task_type=IPv6TaskModel.TYPE_VULN_SCAN).count()
-        vuln_finished_num = IPv6TaskModel.objects.filter(state=IPv6TaskModel.STATE_FINISH,
-                                                         task_type=IPv6TaskModel.TYPE_VULN_SCAN).count()
+        type_list = [IPv6TaskModel.TYPE_GENERATE, IPv6TaskModel.TYPE_VULN_SCAN, IPv6TaskModel.TYPE_STABILITY]
 
-        ipv6_statistics = IPv6Statistics(all_count, generate_num,
-                                         vuln_scan_num,
-                                         generate_running_num,
-                                         generate_finished_num,
-                                         vuln_scan_running_num,
-                                         vuln_finished_num)
+        ipv6_statistics = IPv6Statistics(all_count)
+
+        for task_type in type_list:
+            task_all = IPv6TaskModel.objects.filter(task_type=task_type).count()
+            task_running = IPv6TaskModel.objects.filter(~Q(state=IPv6TaskModel.STATE_FINISH),
+                                                        task_type=task_type).count()
+            task_finished = IPv6TaskModel.objects.filter(state=IPv6TaskModel.STATE_FINISH,
+                                                         task_type=task_type).count()
+            ipv6_statistics.add(task_type, task_all, task_running, task_finished)
 
         return CustomResponse(Status.OK, ipv6_statistics.to_dict())
 
@@ -210,7 +191,7 @@ class IPv6Controller:
             case IPv6TaskModel.TYPE_GET_ALL:
                 dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
                 dir_list.append(CommonTools.get_work_path(task_id) / Constant.TARGET_DIR_PATH)
-                dir_list.append(CommonTools.get_work_path(task_id) / Constant.SEEDS_DIR)
+                dir_list.append(CommonTools.get_work_path(task_id) / Constant.PREPROCESS_DIR)
             case IPv6TaskModel.TYPE_GET_UPLOAD:
                 dir_list.append(str(pathlib.Path(Constant.UPLOAD_DIR_PATH) / task_id))
 
@@ -257,15 +238,11 @@ class IPv6Controller:
         if ipv6_workflow is None:
             return CustomResponse(Status.TASK_NOT_RUNNING)
 
-        result_preprocessor = ipv6_workflow.ipv6_preprocessor.processExecutor.terminate()
-        result_generator = ipv6_workflow.ipv6_generator.processExecutor.terminate()
-        result_scanner = ipv6_workflow.ipv6_vulnerability_scanner.processExecutor.terminate()
+        ipv6_workflow.stop()
 
         CommonTools.clear_task_cache(task_id)
-
-        Logger.log_to_file(f"stop preprocessor: {result_preprocessor}", task_id)
-        Logger.log_to_file(f"stop generator: {result_generator}", task_id)
-        Logger.log_to_file(f"stop scanner: {result_scanner}", task_id)
+        model.state = IPv6TaskModel.STATE_INTERRUPT
+        model.save()
 
         return CustomResponse(Status.OK)
 

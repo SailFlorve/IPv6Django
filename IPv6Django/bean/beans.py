@@ -48,13 +48,15 @@ class Status(StatusInternal):
     TASK_NOT_RUNNING = StatusInternal("10010", "任务未运行")
     LOCAL_IPV6 = StatusInternal("10011", "使用了本地IPv6，可能无法正常进行IPv6扫描")
     DELETE_ERROR = StatusInternal("10012", "删除失败")
-    UPDATE_SCRIPTS_ERROR = StatusInternal("10012", "更新脚本失败")
+    UPDATE_SCRIPTS_ERROR = StatusInternal("10013", "更新脚本失败")
 
     SERVER_EXCEPTION = StatusInternal("20000", "服务器异常")
 
 
 @dataclass
-class IPv6Params(BaseBean):
+class IPv6TaskParams(BaseBean):
+    task_type: int = 0
+    task_name: str = ""
     ipv6: str = ""
     budget: int = 0
     probe: str = ""
@@ -62,6 +64,9 @@ class IPv6Params(BaseBean):
     port: str = ""
     vuln_params: str = ""
     valid_upload_addr: int = 0  # 上传的地址文件中有效的地址数量
+    allow_local_ipv6: int = 0
+    times: int = 0
+    interval: int = 0
 
 
 @dataclass
@@ -71,16 +76,21 @@ class IPv6Task(BaseBean):
     ipv6: str
 
 
-@dataclass
-class IPv6GenerateTaskResult(BaseBean):
+class IPv6TaskResult(BaseBean):
+    result_file_size = ""
+    all_file_size = ""
+
+    current_cmd: str = ""  # 当前原生命令
+    parse_cmd_1: str = ""  # 解析后的命令
+    parse_cmd_2: str = ""  # 解析后的命令，如果上个变量不够用则用这个
+
+
+class IPv6GenerateTaskResult(IPv6TaskResult):
     all_budget: int
     budget_left: int
 
     current_scan: int = 0  # zmap中的当前扫描进度
     all_scan: int = 0  # zmap中的总扫描进度
-    current_cmd: str = ""  # 当前原生命令
-    parse_cmd_1: str = ""  # 解析后的命令
-    parse_cmd_2: str = ""  # 解析后的命令，如果上个变量不够用则用这个
 
     total_active: int = 0
     address_generated: int = 0
@@ -88,19 +98,55 @@ class IPv6GenerateTaskResult(BaseBean):
 
     generated_addr_example: str = ""  # 用于用json保存一部分生成的地址
 
-    result_file_size = ""
-    all_file_size = ""
+    def __init__(self, ab, bl):
+        super(IPv6GenerateTaskResult, self).__init__()
+        self.all_budget = ab
+        self.budget_left = bl
 
 
-@dataclass
+class IPv6VulnScanTaskResult(IPv6TaskResult):
+    pass
+
+
+class IPv6StabilityResult(IPv6TaskResult):
+    current_time: int = 0
+
+    current_scan: int = 0  # zmap中的当前扫描进度
+    all_scan: int = 0  # zmap中的总扫描进度
+    current_hit_rate: float = 0.0
+    ave_hit_rate: float = 0
+
+    result_history_list: list[dict[str]] = []
+    result_history: str
+
+    def save(self):
+        self.result_history_list.append(
+            {"time": self.current_time, "hit_rate": self.current_hit_rate}
+        )
+
+        self.result_history = str(self.result_history_list)
+
+        self.ave_hit_rate = 0
+        for result_dict in self.result_history_list:
+            self.ave_hit_rate += result_dict["hit_rate"]
+        self.ave_hit_rate /= len(self.result_history_list)
+
+
 class IPv6Statistics(BaseBean):
-    all: int
-    generate_num: int
-    vuln_num: int
-    generate_running: int
-    generate_finished: int
-    vuln_running: int
-    vuln_finished: int
+    def __init__(self, all_num):
+        super(IPv6Statistics, self).__init__()
+        self.all = all_num
+        self.statistics = []
+
+    # generate_num: int
+    # vuln_num: int
+    # generate_running: int
+    # generate_finished: int
+    # vuln_running: int
+    # vuln_finished: int
+
+    def add(self, task_type: int, all_num: int, running: int, finished: int):
+        self.statistics.append({"task_type": task_type, "all": all_num, "running": running, "finished": finished})
 
 
 @dataclass
@@ -123,4 +169,5 @@ class VulnScript(BaseBean):
 
 
 if __name__ == '__main__':
-    pass
+    d1 = {"day": 1, "hit_rate": "0.88%"}
+    d2 = {"day": 2, "hit_rate": "0.76%"}

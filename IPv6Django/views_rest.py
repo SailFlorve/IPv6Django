@@ -1,7 +1,7 @@
 from rest_framework.request import Request
 from rest_framework.views import APIView
 
-from IPv6Django.bean.beans import Status
+from IPv6Django.bean.beans import Status, IPv6TaskParams
 from IPv6Django.models import IPv6TaskModel
 from IPv6Django.tools.common_tools import CommonTools
 from IPv6Django.tools.custom_response import CustomResponse
@@ -23,36 +23,51 @@ class IPv6TaskAPIView(APIView):
         super(IPv6TaskAPIView, self).__init__()
         self.ipv6_manager = Singleton.get_ipv6_controller()
 
-    @request_verify(require_params=['type', 'name'],
+    @request_verify(require_params=['task_type', 'name'],
                     require_form_datas=['ipv6_file'],
-                    check_types=[CheckType('type',
+                    check_types=[CheckType('task_type',
                                            'int',
-                                           [IPv6TaskModel.TYPE_GENERATE, IPv6TaskModel.TYPE_VULN_SCAN])])
+                                           [IPv6TaskModel.TYPE_GENERATE,
+                                            IPv6TaskModel.TYPE_VULN_SCAN,
+                                            IPv6TaskModel.TYPE_STABILITY]),
+                                 CheckType('allow_local_ipv6', 'int', [0, 1]),
+                                 CheckType('times', 'int', range(1, 31)),
+                                 CheckType('interval', 'int', range(1, 25)),
+                                 ]
+                    )
     def post(self, request: Request):
         f = request.FILES.get('ipv6_file')
         name = request.query_params.get('name')
         budget = request.query_params.get('budget')
         probe = request.query_params.get('probe')
         band_width = request.query_params.get('band_width')
-        port = request.query_params.get('port')
-        task_type = int(request.query_params.get('type'))
+        port = request.query_params.get('port', 0)
+        task_type = int(request.query_params.get('task_type'))
         vuln_params = request.query_params.get('vuln_params')
-        allow_local_ipv6 = request.query_params.get('local', 0)
+        allow_local_ipv6 = int(request.query_params.get('local', 0))
+        times = int(request.query_params.get('times'))
+        interval = int(request.query_params.get('interval'))
 
         if task_type == IPv6TaskModel.TYPE_GENERATE:
-            if not CommonTools.require_not_none(name, budget, probe, band_width, port):
+            if not CommonTools.require_not_none(name, budget, probe, band_width):
                 return CustomResponse(
-                    Status.LACK_PARAM.with_extra('name, budget, probe, band_width, port 中的参数不能为空'))
+                    Status.LACK_PARAM.with_extra('name, budget, probe, band_width 中的参数不能为空'))
+        elif task_type == IPv6TaskModel.TYPE_STABILITY:
+            if not CommonTools.require_not_none(name, probe, band_width, times, interval):
+                return CustomResponse(
+                    Status.LACK_PARAM.with_extra('name, probe, band_width, times, interval 中的参数不能为空'))
 
-        return self.ipv6_manager.start_task(task_type, name,
-                                            f, budget, probe, band_width, port,
-                                            vuln_params,
-                                            int(allow_local_ipv6))
+        params = IPv6TaskParams(task_type, name, "",
+                                budget, probe, band_width, port, vuln_params, 0,
+                                allow_local_ipv6, times, interval)
+
+        return self.ipv6_manager.start_task(f, params)
 
     @request_verify(require_params=['type'],
                     check_types=[CheckType('type',
                                            'int',
-                                           [IPv6TaskModel.TYPE_QUERY_LIST, IPv6TaskModel.TYPE_STATISTICS])])
+                                           [IPv6TaskModel.TYPE_QUERY_LIST,
+                                            IPv6TaskModel.TYPE_STATISTICS])])
     def get(self, request: Request):
         typ: int = int(request.query_params.get('type'))
 

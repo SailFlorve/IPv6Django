@@ -1,27 +1,11 @@
-import pathlib
-from abc import abstractmethod
 from os import PathLike
 
 from IPv6Django.constant.constant import Constant
+from IPv6Django.ipv6_task.ipv6_task_base import IPv6TaskBase
 from IPv6Django.tools.common_tools import CommonTools, Logger
-from IPv6Django.tools.process_executor import ProcessExecutor
 
 
-class IPv6Generator:
-    """
-    IPv6地址扩展和探测算法
-    """
-
-    def __init__(self, work_path_str: str | PathLike[str]):
-        self.processExecutor = ProcessExecutor()
-        self.work_path = pathlib.Path(work_path_str)
-
-    @abstractmethod
-    def generate(self):
-        pass
-
-
-class Tree6Generator(IPv6Generator):
+class Tree6Generator(IPv6TaskBase):
     def __init__(self, ipv6: str, work_path_str: str | PathLike[str]):
         super(Tree6Generator, self).__init__(work_path_str)
         self.search_params = None
@@ -29,10 +13,11 @@ class Tree6Generator(IPv6Generator):
         self.tree_path = (self.work_path / Constant.TREE_DIR_PATH)
         self.ipv6 = ipv6
 
-        self.callback = None
+    def run(self):
+        self.__generate()
 
-    def set_finished_callback(self, callback):
-        self.callback = callback
+    def stop(self):
+        super().stop()
 
     def set_params(self, budget: int, probe: str, band_width: str, port: str = ""):
         use_port: bool = (probe != "icmp6_echoscan")
@@ -63,11 +48,11 @@ ins_num : {8 if use_port else 7}
         tree_search_path = self.tree_path / "search_parameters"
         tree_search_path.write_text(self.search_params)
 
-    def generate(self):
+    def __generate(self):
         def __on_finish(result):
             Logger.log_to_file(f"Generate return code: {result}", path=self.work_path)
-            if self.callback is not None:
-                self.callback(result)
+            if self.finished_callback is not None:
+                self.finished_callback(result)
 
         Logger.log_to_file(f"Params:\n{self.scanner_params}\n{self.search_params}", path=self.work_path)
 
@@ -81,7 +66,7 @@ ins_num : {8 if use_port else 7}
         cmd = f"{Constant.LIB_TREE_PATH} -R -in-tree {self.tree_path} " \
               f"-out-res {str(CommonTools.get_work_result_path_by_work_path(self.work_path))}"
         Logger.log_to_file(cmd, path=self.work_path)
-        self.processExecutor.execute(
+        self.process_executor.execute(
             cmd,
             finished_callback=__on_finish)
 
@@ -89,4 +74,4 @@ ins_num : {8 if use_port else 7}
 if __name__ == '__main__':
     g = Tree6Generator("", "/root/PycharmProjects/IPv6Django/result/123123")
     g.set_params(1, "ipv6_echoscan", "10M")
-    g.generate()
+    g.run()

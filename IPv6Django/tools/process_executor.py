@@ -15,8 +15,6 @@ _FILE = Union[None, int, IO[Any]]
 CallbackType = Callable[[str], None]
 FinishedCallbackType = Callable[[int], None]
 
-__all__ = ["process_executor"]
-
 
 class ProcessExecutor:
     def __init__(self):

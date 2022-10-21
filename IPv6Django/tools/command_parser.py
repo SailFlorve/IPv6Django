@@ -35,7 +35,11 @@ class CommandParser:
             msg_type = self.TYPE_SENDING
             current = msg.split("send: ")[-1].split(" ")[0]
             # parseMsg = f"活动地址探测: {current} / {self.lastLineCount}"
+            hit_rate: str = msg.split("hitrate: ")[-1].split(" ")[0]
+            hit_rate: float = float(hit_rate.strip("%"))  # 获得当前命中率
             info.append(int(current))
+            info.append(hit_rate)
+
         elif "budget remains:" in msg:
             msg_type = self.TYPE_BUDGET
             budget = int(msg.split('budget remains: ')[-1])
@@ -66,15 +70,5 @@ class CommandParser:
 
 
 if __name__ == '__main__':
-    ss = r"""
-    invalid literal for int() with base 10: '18771\n[2022/8/13 1:29:0][Network search] Output dealiased active addresses.'
-[2022/8/13 1:29:0]
-Aliased region: 26001406004*0***00000000********
-[2022/8/13 1:29:0][Alias detection] Finished on node: 1633
-[2022/8/13 1:29:0]
-Total scanning finished.
-Find total active addresses: 18771
-[2022/8/13 1:29:0][Network search] Output dealiased active addresses.
-    """
-    ss1 = ss.strip()
-    print(ss1.split("Find total active addresses: ")[-1].split("\n")[0])
+    h = "11.88%"
+    print(h.strip("%"))

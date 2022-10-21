@@ -5,24 +5,20 @@ from os import PathLike
 from bs4 import BeautifulSoup
 
 from IPv6Django.constant.constant import Constant
+from IPv6Django.ipv6_task.ipv6_task_base import IPv6TaskBase
 from IPv6Django.tools.common_tools import Logger, CommonTools
-from IPv6Django.tools.process_executor import ProcessExecutor
 
 
-class IPv6VulnerabilityScanner:
+class IPv6VulnerabilityScanner(IPv6TaskBase):
     def __init__(self, origin_file_path_str: str | PathLike[str], work_path_str: str | PathLike[str], options_str: str):
-        self.processExecutor = ProcessExecutor()
-        self.origin_file_path = pathlib.Path(origin_file_path_str)
-        self.work_path = pathlib.Path(work_path_str)
+        super(IPv6VulnerabilityScanner, self).__init__(work_path_str, origin_file_path_str)
 
         self.scan_res_path = CommonTools.get_work_result_path_by_work_path(self.work_path) / Constant.SCAN_RES_NAME
 
         self.options_str = options_str
 
-        self.on_finish_callback = None
-
-    def set_on_finish_callback(self, callback):
-        self.on_finish_callback = callback
+    def run(self):
+        self.scan()
 
     def scan(self):
         def finish_callback(exit_code):
@@ -36,22 +32,22 @@ class IPv6VulnerabilityScanner:
                 result_json_path.write_text(json.dumps(nmap_parse_result))
 
             except Exception as e:
-                pass
+                Logger.log_to_file(str(e), path=self.work_path)
 
             Logger.log_to_file("scan finished", path=self.work_path)
-            if self.on_finish_callback is not None:
-                self.on_finish_callback(exit_code)
+            if self.finished_callback is not None:
+                self.finished_callback(exit_code)
 
         nmap_cmd = f"nmap -6 -iL {str(self.origin_file_path)} " \
                    f"-oA {self.scan_res_path} "
 
         if self.options_str is None or self.options_str == "":
-            nmap_cmd += f"--script=vuln -Pn -n -v -v "
+            nmap_cmd += f"--script=vuln -Pn -n -v -v "  # -n 禁止dns解析 -Pn 跳过Ping扫描
         else:
             nmap_cmd += self.options_str
 
         Logger.log_to_file(nmap_cmd, path=self.work_path)
-        self.processExecutor.execute(nmap_cmd, finished_callback=finish_callback)
+        self.process_executor.execute(nmap_cmd, finished_callback=finish_callback)
 
     @staticmethod
     def parse_xml(xml_path: pathlib.Path):

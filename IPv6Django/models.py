@@ -5,7 +5,8 @@ from rest_framework import serializers
 class IPv6TaskModel(models.Model):
     TYPE_GENERATE = 0
     TYPE_VULN_SCAN = 1
-    TYPE_ALL = 2
+    TYPE_STABILITY = 2
+    TYPE_ALL = 3
 
     TYPE_GET_STATE = 0
     TYPE_GET_RESULT = 1
@@ -20,11 +21,13 @@ class IPv6TaskModel(models.Model):
     TYPE_QUERY_LIST = 0
     TYPE_STATISTICS = 1
 
-    STATE_ERROR = 0
+    STATE_FINISH = 0
     STATE_PREPROCESS = 1
     STATE_GENERATE_IPV6 = 2
     STATE_VULN_SCAN = 3
-    STATE_FINISH = 4
+    STATE_STABILITY = 4
+    STATE_INTERRUPT = 5
+    STATE_ERROR = -1
 
     task_id = models.CharField(max_length=100, primary_key=True)
     task_name = models.CharField(max_length=100)
@@ -83,6 +86,7 @@ class IPv6TaskSerializer(serializers.ModelSerializer):
 class VulnScriptModel(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
     description = models.TextField(default="")
+
     class Meta:
         db_table = "tb_vuln_script"
         ordering = ["name"]

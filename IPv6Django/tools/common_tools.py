@@ -4,6 +4,7 @@ import pathlib
 import shutil
 import socket
 import subprocess
+import time
 import urllib.request
 import uuid
 import zipfile
@@ -14,7 +15,7 @@ from django.http import HttpResponse
 from IPv6Django.bean.beans import BaseBean
 from IPv6Django.constant.constant import Constant
 from IPv6Django.constant.scripts import VulnScripts
-from IPv6Django.models import VulnScriptModel
+from IPv6Django.models import VulnScriptModel, IPv6TaskModel
 
 
 class CommonTools:
@@ -167,16 +168,33 @@ class CommonTools:
                         break
         return json.dumps(result)
 
+    @staticmethod
+    def get_task_id(task_type: int) -> str:
+        prefix: str
+        match task_type:
+            case IPv6TaskModel.TYPE_GENERATE:
+                prefix = "G"
+            case IPv6TaskModel.TYPE_VULN_SCAN:
+                prefix = "V"
+            case IPv6TaskModel.TYPE_STABILITY:
+                prefix = "S"
+            case _:
+                prefix = "T"
+        task_id: str = f"{prefix}-{CommonTools.get_uuid()}"
+        return task_id
+
 
 class Logger:
     @staticmethod
     def get_log_path(task_id: str = None, path: str | pathlib.Path = None) -> pathlib.Path:
         if path is None:
             path = CommonTools.get_work_result_path_by_task_id(task_id)
-            if not path.exists():
-                path.mkdir(parents=True, exist_ok=True)
         else:
             path = CommonTools.get_work_result_path_by_work_path(path)
+
+        if not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
+
         path = path / Constant.LOG_FILE_NAME
         return path
 
@@ -193,6 +211,7 @@ class Logger:
             raise Exception("task_id和path不能同时为空")
 
         path = Logger.get_log_path(task_id, path)
+        content = time.strftime("[%Y/%m/%d %H:%M:%S]", time.localtime()) + " " + content
         print(content)
         print(content, file=open(path, "a"))
 

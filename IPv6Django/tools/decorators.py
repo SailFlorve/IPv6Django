@@ -11,7 +11,7 @@ from IPv6Django.tools.custom_response import CustomResponse
 class CheckType:
     name: str
     type: str
-    values: list | None = None  # 可选值
+    values: list | range | None = None  # 可选值
 
 
 def request_verify(require_params: list[str] | None = None,
@@ -57,7 +57,9 @@ def request_verify(require_params: list[str] | None = None,
 
                     if check_type.values is not None \
                             and int(request.query_params[check_type.name]) not in check_type.values:
-                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不在可选范围内"))
+                        return CustomResponse(
+                            Status.PARAM_ERROR.with_extra(
+                                f"参数 {check_type.name} 不在可选范围 {check_type.values} 内"))
 
                 elif check_type.type == 'float':
                     try:
@@ -66,7 +68,8 @@ def request_verify(require_params: list[str] | None = None,
                         return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是浮点数"))
                     if check_type.values is not None \
                             and float(request.query_params[check_type.name]) not in check_type.values:
-                        return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不在可选范围内"))
+                        return CustomResponse(Status.PARAM_ERROR.with_extra(
+                            f"参数 {check_type.name} 不在可选范围 {check_type.values} 内"))
 
                 elif check_type.type == 'bool':
                     if request.query_params[check_type.name] == 'true':
