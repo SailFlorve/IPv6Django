@@ -34,7 +34,7 @@ class IPv6VulnerabilityScanner(IPv6TaskBase):
             except Exception as e:
                 Logger.log_to_file(str(e), path=self.work_path)
 
-            Logger.log_to_file("scan finished", path=self.work_path)
+            Logger.log_to_file("Scan finished", path=self.work_path)
             if self.finished_callback is not None:
                 self.finished_callback(exit_code)
 

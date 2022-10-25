@@ -22,6 +22,7 @@ class Constant:
 
     TARGET_TMP_PATH = "targets.txt"  # 用于保存6Tree的地址生成结果的临时文件名
     RESULT_TMP_PATH = "result.txt"  # 用于保存6Tree的探测结果的临时文件名
+    TARGET_MERGE_NAME = 'targets_all.txt'
 
     DEFAULT_PORTS = "443"
 

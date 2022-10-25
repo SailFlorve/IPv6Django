@@ -159,18 +159,18 @@ class IPv6GenerateWorkflow(IPv6Workflow):
     def stop(self):
         result_preprocessor = self.ipv6_preprocessor.process_executor.terminate()
         result_generator = self.ipv6_generator.process_executor.terminate()
-        Logger.log_to_file(f"stop preprocessor: {result_preprocessor}", self.task_id)
-        Logger.log_to_file(f"stop generator: {result_generator}", self.task_id)
+        Logger.log_to_file(f"Stop preprocessor: {result_preprocessor}", self.task_id)
+        Logger.log_to_file(f"Stop generator: {result_generator}", self.task_id)
 
     def __start_generate_workflow(self):
-        Logger.log_to_file("start_workflow", self.task_id)
+        Logger.log_to_file("Start_workflow", self.task_id)
         self._save_upload_file()
         self.ipv6_preprocessor.set_finished_callback(self.__on_preprocess_finished)
         self.ipv6_preprocessor.run()
 
     def __on_preprocess_finished(self, return_code, line_count):
 
-        Logger.log_to_file(f"preprocess finished, return code {return_code}, line count {line_count}", self.task_id)
+        Logger.log_to_file(f"Preprocess finished, return code {return_code}, line count {line_count}", self.task_id)
 
         if return_code != 0:
             self.result_obj.parse_cmd_1 = f"预处理失败，错误{return_code}"
@@ -210,7 +210,7 @@ class IPv6GenerateWorkflow(IPv6Workflow):
         self._set_current_state(IPv6TaskModel.STATE_GENERATE_IPV6)
 
     def _on_task_finished(self, return_code):
-        Logger.log_to_file(f"generate finished, return {return_code}", self.task_id)
+        Logger.log_to_file(f"Generate finished, return {return_code}", self.task_id)
         if return_code is not 0:
             self.result_obj.parse_cmd_1 = f"生成IPv6地址发生错误{return_code}"
             self._update_result()
@@ -222,6 +222,12 @@ class IPv6GenerateWorkflow(IPv6Workflow):
         self.result_obj.generated_addr_example = CommonTools.get_target_addr_examples_json(self.task_id)
         self.result_obj.budget_left = int(self.ipv6_params.budget) - self.all_line_count
         self.result_obj.hit_rate = self.result_obj.total_active / self.all_line_count
+
+        Logger.log_to_file(f"Merging target files", self.task_id)
+        # 将所有targets文件合并成一个
+        CommonTools.merge_all_file(self.work_path / Constant.TARGET_DIR_PATH,
+                                   self.work_path / Constant.TARGET_DIR_PATH / Constant.TARGET_MERGE_NAME)
+        Logger.log_to_file(f"Merging finished", self.task_id)
 
         super(IPv6GenerateWorkflow, self)._on_task_finished(return_code)
 
@@ -298,7 +304,7 @@ class IPv6VulnerabilityScanWorkflow(IPv6Workflow):
 
     def stop(self):
         result_scanner = self.ipv6_vulnerability_scanner.process_executor.terminate()
-        Logger.log_to_file(f"stop scanner: {result_scanner}", self.task_id)
+        Logger.log_to_file(f"Stop scanner: {result_scanner}", self.task_id)
 
     def __start_vulnerability_scan(self):
         self.ipv6_vulnerability_scanner.set_finished_callback(self._on_task_finished)
@@ -332,15 +338,15 @@ class IPv6StabilityWorkflow(IPv6Workflow):
     def start(self):
         super(IPv6StabilityWorkflow, self).start()
         self.result_obj.all_scan = CommonTools.line_count(self.file_save_path)
-        Logger.log_to_file(f"start stability monitor", self.task_id)
+        Logger.log_to_file(f"Start stability monitor", self.task_id)
         self.ipv6_stability_monitor.run()
 
     def stop(self):
-        Logger.log_to_file(f"stop stability monitor", self.task_id)
+        Logger.log_to_file(f"Stop stability monitor", self.task_id)
         self.ipv6_stability_monitor.stop()
 
     def _on_task_finished(self, exit_code):
-        Logger.log_to_file(f"stability monitor finished, exit code {exit_code}", self.task_id)
+        Logger.log_to_file(f"Stability monitor finished, exit code {exit_code}", self.task_id)
         super(IPv6StabilityWorkflow, self)._on_task_finished(exit_code)
 
     def _stdout_callback(self, cmd_line):
@@ -362,5 +368,5 @@ class IPv6StabilityWorkflow(IPv6Workflow):
     def __on_single_monitor_finish(self):
         self.result_obj.save()
         self._update_result()
-        Logger.log_to_file(f"current hit rate: {self.result_obj.current_hit_rate}, "
-                           f"average hit rate: {self.result_obj.ave_hit_rate}", self.task_id)
+        Logger.log_to_file(f"Current hit rate: {self.result_obj.current_hit_rate}, "
+                           f"Average hit rate: {self.result_obj.ave_hit_rate}", self.task_id)

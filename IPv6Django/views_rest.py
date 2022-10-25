@@ -110,9 +110,9 @@ class IPv6TaskIdAPIView(APIView):
         match r_type:
             case IPv6TaskModel.TYPE_GET_STATE:
                 return self.ipv6_manager.get_task_state(pk)
-            case IPv6TaskModel.TYPE_GET_RESULT | IPv6TaskModel.TYPE_GET_ALL | IPv6TaskModel.TYPE_GET_UPLOAD:
+            case IPv6TaskModel.TYPE_GET_RESULT | IPv6TaskModel.TYPE_GET_PREPROCESS | IPv6TaskModel.TYPE_GET_UPLOAD | IPv6TaskModel.TYPE_GET_GENERATION:
                 return self.ipv6_manager.get_task_result(pk, r_type)
-            case IPv6TaskModel.TYPE_PARSE_RESULT:
+            case IPv6TaskModel.TYPE_PARSE_VULN_RESULT:
                 c_page = request.query_params.get("pageNum", "1")
                 per_page = request.query_params.get("pageSize", "-1")
 

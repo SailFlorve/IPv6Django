@@ -20,7 +20,7 @@ class IPv6MultiLevelClassification:
         self.thread = threading.Thread(target=self.__multi_level_classification_internal)
 
     def multi_level_classification(self):
-        Logger.log_to_file("start multi level classification", path=self.work_path)
+        Logger.log_to_file("Start multi level classification", path=self.work_path)
         self.thread.start()
 
     def __multi_level_classification_internal(self):
@@ -32,7 +32,7 @@ class IPv6MultiLevelClassification:
                     asn_num, bgp_prefix = self.asn_tool.get_asn_bgp(addr)
                     iid_log_q = self.statistics_tool.get_iid_log_q(addr)
                     self.__format_write(f2, addr, asn_num, bgp_prefix, iid_log_q)
-        Logger.log_to_file("multi level classification finished", path=self.work_path)
+        Logger.log_to_file("Multi level classification finished", path=self.work_path)
 
     @staticmethod
     def __format_write(f: "TextIO", ipv6: str, asn: str, bgp: str, iid_log_q: str):

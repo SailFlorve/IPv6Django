@@ -72,7 +72,7 @@ class IPv6ExtendPolicyGenerator:
         self.thread = threading.Thread(target=self.__output_policy_thread)
 
     def output_policy(self):
-        Logger.log_to_file("start policy calculate", path=self.work_path)
+        Logger.log_to_file("Start policy calculate", path=self.work_path)
         self.thread.start()
 
     def __output_policy_thread(self):
@@ -84,7 +84,7 @@ class IPv6ExtendPolicyGenerator:
 
         f.close()
 
-        Logger.log_to_file("policy calculate finished", path=self.work_path)
+        Logger.log_to_file("Policy calculate finished", path=self.work_path)
 
     def __output_policy_internal(self, f: IO, tree_node: TreeNode):
 

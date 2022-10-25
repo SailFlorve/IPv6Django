@@ -42,7 +42,7 @@ class IPv6Controller:
 
         params.ipv6 = ipv6
 
-        task_id = CommonTools.get_task_id(params.task_type)
+        task_id = self.get_task_id(params.task_type)
 
         workflow = IPv6Workflow.create(params.task_type, task_id,
                                        params, f)
@@ -189,12 +189,14 @@ class IPv6Controller:
         match download_type:
             case IPv6TaskModel.TYPE_GET_RESULT:
                 dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
-            case IPv6TaskModel.TYPE_GET_ALL:
-                dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
-                dir_list.append(CommonTools.get_work_path(task_id) / Constant.TARGET_DIR_PATH)
+            case IPv6TaskModel.TYPE_GET_PREPROCESS:
+                # dir_list.append(str(CommonTools.get_work_result_path_by_task_id(task_id)))
+                # dir_list.append(CommonTools.get_work_path(task_id) / Constant.TARGET_DIR_PATH)
                 dir_list.append(CommonTools.get_work_path(task_id) / Constant.PREPROCESS_DIR)
             case IPv6TaskModel.TYPE_GET_UPLOAD:
                 dir_list.append(str(pathlib.Path(Constant.UPLOAD_DIR_PATH) / task_id))
+            case IPv6TaskModel.TYPE_GET_GENERATION:
+                dir_list.append(CommonTools.get_work_path(task_id) / Constant.TARGET_DIR_PATH)
 
         zip_path = CommonTools.get_work_path(task_id)
         zip_name = f"{task_id}.zip"
@@ -334,6 +336,21 @@ class IPv6Controller:
             Logger.log_to_file(f"Task {task_id} released", task_id)
         except KeyError:
             pass
+
+    @staticmethod
+    def get_task_id(task_type: int) -> str:
+        prefix: str
+        match task_type:
+            case IPv6TaskModel.TYPE_GENERATE:
+                prefix = "G"
+            case IPv6TaskModel.TYPE_VULN_SCAN:
+                prefix = "V"
+            case IPv6TaskModel.TYPE_STABILITY:
+                prefix = "S"
+            case _:
+                prefix = "T"
+        task_id: str = f"{prefix}-{CommonTools.get_uuid()}"
+        return task_id
 
 
 if __name__ == '__main__':

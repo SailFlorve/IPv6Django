@@ -23,7 +23,7 @@ class Tree6Generator(IPv6TaskBase):
         use_port: bool = (probe != "icmp6_echoscan")
 
         self.search_params = f'''budget : {budget}
-step_budget : {int(budget) / 5}
+step_budget : {int(int(budget) / 5)}
 adet_ptimes : {alias_det}
 adet_tsscale_thd : 1024
 adet_aad_thd : 0.95

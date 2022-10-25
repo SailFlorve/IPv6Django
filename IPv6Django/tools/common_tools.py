@@ -12,7 +12,6 @@ from django.http import HttpResponse
 
 from IPv6Django.bean.beans import BaseBean
 from IPv6Django.constant.constant import Constant
-from IPv6Django.models import IPv6TaskModel
 
 
 class CommonTools:
@@ -166,19 +165,32 @@ class CommonTools:
         return json.dumps(result)
 
     @staticmethod
-    def get_task_id(task_type: int) -> str:
-        prefix: str
-        match task_type:
-            case IPv6TaskModel.TYPE_GENERATE:
-                prefix = "G"
-            case IPv6TaskModel.TYPE_VULN_SCAN:
-                prefix = "V"
-            case IPv6TaskModel.TYPE_STABILITY:
-                prefix = "S"
-            case _:
-                prefix = "T"
-        task_id: str = f"{prefix}-{CommonTools.get_uuid()}"
-        return task_id
+    def merge_all_file(targets_dir_path: pathlib.Path, target_file_path: pathlib.Path, delete_source: bool = True):
+        """
+        合并所有文件
+        :param targets_dir_path: 目标文件夹
+        :param target_file_path: 目标文件
+        :param delete_source: 是否删除源文件
+        """
+        buffer_size = 1024 * 1024 * 5  # 5M
+
+        with open(target_file_path, 'w+') as f:
+            for file in sorted(targets_dir_path.glob("*")):
+                if file == target_file_path:
+                    continue
+
+                with open(file, 'r') as f1:
+                    while True:
+                        data = f1.read(buffer_size)
+                        if data:
+                            f.write(data)
+                        else:
+                            break
+
+        if delete_source:
+            for file in targets_dir_path.glob("*"):
+                if file != target_file_path:
+                    file.unlink()
 
 
 class Logger:
@@ -236,4 +248,7 @@ class ZipTool:
 
 
 if __name__ == '__main__':
-    print(CommonTools.get_ipv6())
+    CommonTools.merge_all_file(
+        pathlib.Path('/root/PyCharmProjects/IPv6Django/result/G-270e6722-5453-11ed-8052-7503217395a5/targets'),
+        pathlib.Path(
+            '/root/PyCharmProjects/IPv6Django/result/G-270e6722-5453-11ed-8052-7503217395a5/targets/targets_all.txt'))
