@@ -3,7 +3,7 @@ import dataclasses
 
 @dataclasses.dataclass
 class Constant:
-    LIB_TREE_PATH = "lib/6tree_mod_2"  # 6Tree的路径
+    LIB_TREE_PATH = "lib/libtree"  # 6Tree的路径
     LIB_ZMAP_PATH = "zmap"  # zmap的路径
 
     TREE_DIR_PATH = "tree_hex"  # 6Tree的输出目录
@@ -16,6 +16,7 @@ class Constant:
     TREE_INFO_NAME = "tree_info"
     VEC_SEQ_INFO_NAME = "vec_seq_info"
     POLICY_NAME = "policy.txt"
+    MULTI_LEVEL_CLASSIFICATION_NAME = 'multi_level_classification.txt'
 
     UPLOAD_DIR_PATH = "upload"  # 上传文件的目录
 

@@ -2,11 +2,12 @@ import os
 import pathlib
 import socket
 import subprocess
+import sys
 import urllib.request
 
 from bs4 import BeautifulSoup
 
-from IPv6Django.tools.process_executor import ProcessExecutor
+from IPv6Django.tools.ipv6_classification_tool import IPv6CIDRTool
 
 
 def get_ipv6():
@@ -78,5 +79,23 @@ def get_scripts():
     return result_dict
 
 
+def filter_cernet_ipv6():
+    ip_path = pathlib.Path('/mnt/hgfs/Share/responsive-addresses.txt')
+    new_path = pathlib.Path('/mnt/hgfs/Share/filter.txt')
+    cidr_tool = IPv6CIDRTool()
+    counter = 0
+    with open(ip_path, 'r') as f:
+        with open(new_path, 'w') as f2:
+            for line in f.readlines():
+                counter += 1
+                ip = line
+                if counter % 1000 == 0:
+                    print(f'counter: {counter}')
+                    print(sys.getsizeof(cidr_tool))
+                    print(sys.getsizeof(f))
+                if cidr_tool.get_isp(ip.strip()) == '中国教育和科研计算机网':
+                    f2.write(ip)
+
+
 if __name__ == '__main__':
-    print(get_scripts())
+    filter_cernet_ipv6()

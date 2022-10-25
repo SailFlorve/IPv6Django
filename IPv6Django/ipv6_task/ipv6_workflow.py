@@ -7,7 +7,8 @@ from typing import Callable
 from IPv6Django.bean.beans import IPv6TaskParams, IPv6GenerateTaskResult, IPv6VulnScanTaskResult, IPv6StabilityResult, \
     IPv6TaskResult
 from IPv6Django.constant.constant import Constant
-from IPv6Django.ipv6_task.ipv6_extend_policy import IPv6ExtendPolicyGenerator
+from IPv6Django.tools.ipv6_classification import IPv6MultiLevelClassification
+from IPv6Django.tools.ipv6_extend_policy import IPv6ExtendPolicyGenerator
 from IPv6Django.ipv6_task.ipv6_generator import Tree6Generator
 from IPv6Django.ipv6_task.ipv6_preprocessor import Tree6Preprocessor
 from IPv6Django.ipv6_task.ipv6_stability_monitor import IPv6StabilityMonitor
@@ -144,8 +145,8 @@ class IPv6GenerateWorkflow(IPv6Workflow):
         self.ipv6_preprocessor = Tree6Preprocessor(self.file_save_path, self.work_path)
         self.ipv6_generator = Tree6Generator(params.ipv6, self.work_path)
 
-        self.ipv6_preprocessor.process_executor._stdout_callback = self._stdout_callback
-        self.ipv6_generator.process_executor._stdout_callback = self._stdout_callback
+        self.ipv6_preprocessor.set_finished_callback(self._stdout_callback)
+        self.ipv6_generator.set_cmd_out_callback(self._stdout_callback)
 
         self.target_index = 0  # 地址扩展中另存为生成的target的编号
         self.last_line_count = 0
@@ -195,11 +196,15 @@ class IPv6GenerateWorkflow(IPv6Workflow):
         policy_generator.output_policy()
         del policy_generator
 
+        level_classification = IPv6MultiLevelClassification(self.work_path, self.file_save_path)
+        level_classification.multi_level_classification()
+
         time.sleep(1)
         self.ipv6_generator.set_params(self.ipv6_params.budget,
                                        self.ipv6_params.probe,
-                                       self.ipv6_params.band_width,
-                                       self.ipv6_params.port)
+                                       self.ipv6_params.rate,
+                                       self.ipv6_params.port,
+                                       self.ipv6_params.alias_det)
         self.ipv6_generator.set_finished_callback(self._on_task_finished)
         self.ipv6_generator.run()
         self._set_current_state(IPv6TaskModel.STATE_GENERATE_IPV6)
@@ -207,7 +212,7 @@ class IPv6GenerateWorkflow(IPv6Workflow):
     def _on_task_finished(self, return_code):
         Logger.log_to_file(f"generate finished, return {return_code}", self.task_id)
         if return_code is not 0:
-            self.result_obj.parse_cmd_1 = f"生成IPv6地址失败，错误{return_code}"
+            self.result_obj.parse_cmd_1 = f"生成IPv6地址发生错误{return_code}"
             self._update_result()
             self._set_current_state(IPv6TaskModel.STATE_ERROR)
             return
@@ -230,7 +235,8 @@ class IPv6GenerateWorkflow(IPv6Workflow):
                 line_count = CommonTools.line_count(str(self.work_path / Constant.TARGET_TMP_PATH))
                 self.last_line_count = line_count
                 self.all_line_count += line_count
-                self.__copy_targets()
+                if line_count != 0:
+                    self.__copy_targets()
             case CommandParser.TYPE_SENDING:
                 current = msg_info[0]
                 self._set_current_parse_cmd(1, f"活动地址探测: {current} / {self.last_line_count}")
@@ -284,7 +290,7 @@ class IPv6VulnerabilityScanWorkflow(IPv6Workflow):
         super(IPv6VulnerabilityScanWorkflow, self).__init__(task_id, params, upload_file)
         self.ipv6_vulnerability_scanner = IPv6VulnerabilityScanner(
             self.file_save_path, self.work_path, params.vuln_params)
-        self.ipv6_vulnerability_scanner.process_executor._stdout_callback = self._stdout_callback
+        self.ipv6_vulnerability_scanner.set_cmd_out_callback(self._stdout_callback)
 
     def start(self):
         super(IPv6VulnerabilityScanWorkflow, self).start()

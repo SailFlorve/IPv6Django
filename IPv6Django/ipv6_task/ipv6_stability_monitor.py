@@ -49,7 +49,7 @@ class IPv6StabilityMonitor(IPv6TaskBase):
             self.current_time = i + 1
 
             Logger.log_to_file(f"start stability monitor time {self.current_time}", path=self.work_path)
-            scanner_cmd = f"""zmap --probe-module={self.ipv6_params.probe} --ipv6-target-file={str(self.origin_file_path)} --output-file={str(self.work_path / Constant.RESULT_DIR_PATH / f"time_{self.current_time}")} --ipv6-source-ip={self.ipv6_params.ipv6} --bandwidth={self.ipv6_params.band_width} --cooldown-time=4 --verbosity=3"""
+            scanner_cmd = f"""zmap --probe-module={self.ipv6_params.probe} --ipv6-target-file={str(self.origin_file_path)} --output-file={str(self.work_path / Constant.RESULT_DIR_PATH / f"time_{self.current_time}")} --ipv6-source-ip={self.ipv6_params.ipv6} --bandwidth={self.ipv6_params.rate} --cooldown-time=4 --verbosity=3"""
             if self.ipv6_params.probe != Constant.DEFAULT_PROBE:
                 scanner_cmd += f" --target-port={self.ipv6_params.port}"
 

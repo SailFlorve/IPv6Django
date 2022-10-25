@@ -9,7 +9,8 @@ from IPv6Django.bean.beans import IPv6TaskParams, Status, IPv6Task, PageInfo, IP
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_workflow import IPv6Workflow
 from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer, VulnScriptModel
-from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger, VulnScriptManager
+from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger
+from IPv6Django.tools.vuln_script_manager import VulnScriptManager
 from IPv6Django.tools.custom_response import CustomResponse
 
 

@@ -60,13 +60,14 @@ class IPv6TaskParams(BaseBean):
     ipv6: str = ""
     budget: int = 0
     probe: str = ""
-    band_width: str = ""
+    rate: str = ""
     port: str = ""
     vuln_params: str = ""
     valid_upload_addr: int = 0  # 上传的地址文件中有效的地址数量
     allow_local_ipv6: int = 0
     times: int = 0
     interval: int = 0
+    alias_det: int = 0
 
 
 @dataclass

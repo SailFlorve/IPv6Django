@@ -19,12 +19,12 @@ class Tree6Generator(IPv6TaskBase):
     def stop(self):
         super().stop()
 
-    def set_params(self, budget: int, probe: str, band_width: str, port: str = ""):
+    def set_params(self, budget: int, probe: str, rate: str, port: str = "", alias_det: int = 0):
         use_port: bool = (probe != "icmp6_echoscan")
 
         self.search_params = f'''budget : {budget}
 step_budget : {int(budget) / 5}
-adet_ptimes : 5
+adet_ptimes : {alias_det}
 adet_tsscale_thd : 1024
 adet_aad_thd : 0.95
 adet_crip : 1048576'''
@@ -35,7 +35,7 @@ ins_num : {8 if use_port else 7}
 --ipv6-target-file={str(self.work_path / Constant.TARGET_TMP_PATH)}
 --output-file={str(self.work_path / Constant.RESULT_TMP_PATH)}
 --ipv6-source-ip={self.ipv6}
---bandwidth={band_width}
+--rate={rate}
 --cooldown-time=4
 --verbosity=3"""
 

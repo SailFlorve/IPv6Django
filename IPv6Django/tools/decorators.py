@@ -8,7 +8,7 @@ from IPv6Django.tools.custom_response import CustomResponse
 
 
 @dataclass
-class CheckType:
+class CheckDef:
     name: str
     type: str
     values: list | range | None = None  # 可选值
@@ -16,7 +16,7 @@ class CheckType:
 
 def request_verify(require_params: list[str] | None = None,
                    require_form_datas: list[str] | None = None,
-                   check_types: list[CheckType] | None = None):
+                   check_types: list[CheckDef] | None = None):
     """
     用于检查前端传入数据的装饰器
     其中check_types和check_values的key必须是require_params
