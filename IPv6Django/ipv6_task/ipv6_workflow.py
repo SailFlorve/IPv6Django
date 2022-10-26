@@ -184,7 +184,8 @@ class IPv6GenerateWorkflow(IPv6Workflow):
             self._set_current_state(IPv6TaskModel.STATE_ERROR)
             return
 
-        self.ipv6_params.valid_upload_addr = line_count
+        self.result_obj.valid_upload_addr = line_count
+        self._update_result()
 
         # 此处可以从数据库获取到数据，调用ipv6_workflow前已经保存了一条任务记录
         model = IPv6TaskModel.get_model_by_task_id(self.task_id)
@@ -245,7 +246,7 @@ class IPv6GenerateWorkflow(IPv6Workflow):
                     self.__copy_targets()
             case CommandParser.TYPE_SENDING:
                 current = msg_info[0]
-                self._set_current_parse_cmd(1, f"活动地址探测: {current} / {self.last_line_count}")
+                self._set_current_parse_cmd(1, f"Active address detection progress: {current} / {self.last_line_count}")
                 self.result_obj.current_scan = current
                 self.result_obj.all_scan = self.last_line_count
                 self._update_result()
@@ -253,13 +254,13 @@ class IPv6GenerateWorkflow(IPv6Workflow):
             case CommandParser.TYPE_BUDGET:
                 self.result_obj.budget_left = msg_info[0]
                 self._update_result()
-                self._set_current_parse_cmd(2, f"剩余预算: {self.result_obj.budget_left}")
+                self._set_current_parse_cmd(2, f"Budget left: {self.result_obj.budget_left}")
             case CommandParser.TYPE_FINISH:
                 all_generate = self.result_obj.all_budget - self.result_obj.budget_left
                 total_active = msg_info[0]
                 hit_rate = int(total_active) / all_generate
-                parse_msg = f"找到活动地址: {total_active}, 已扩展: {all_generate}, " \
-                            f"命中率: {hit_rate}"
+                parse_msg = f"Find active address: {total_active}, generated: {all_generate}, " \
+                            f"hit rate: {hit_rate}"
                 self.result_obj.address_generated = all_generate
                 self.result_obj.total_active = total_active
                 self.result_obj.hit_rate = hit_rate
@@ -269,11 +270,11 @@ class IPv6GenerateWorkflow(IPv6Workflow):
                 self._set_current_parse_cmd(2, "")
             case CommandParser.TYPE_6TREE_START:
                 self.target_index = 0
-                self._set_current_parse_cmd(2, f"剩余预算: {self.result_obj.all_budget}")
+                self._set_current_parse_cmd(2, f"Budget left: {self.result_obj.all_budget}")
             case CommandParser.TYPE_6TREE_TRANS:
-                self._set_current_parse_cmd(2, "状态: 正在预处理...")
+                self._set_current_parse_cmd(2, "State: preprocessing...")
             case CommandParser.TYPE_6TREE_TRANS_FINISH:
-                self._set_current_parse_cmd(2, "状态: 地址预处理完成")
+                self._set_current_parse_cmd(2, "State: preprocess finished")
 
     def __copy_targets(self):
         """
@@ -355,8 +356,8 @@ class IPv6StabilityWorkflow(IPv6Workflow):
         msg_type, msg_info = self.command_parser.parse(cmd_line)
         match msg_type:
             case CommandParser.TYPE_SENDING:
-                self._set_current_parse_cmd(1, f"扫描进度: {msg_info[0]}/{self.result_obj.all_scan}")
-                self._set_current_parse_cmd(2, f"当前命中率: {msg_info[1]}")
+                self._set_current_parse_cmd(1, f"Scan progress: {msg_info[0]}/{self.result_obj.all_scan}")
+                self._set_current_parse_cmd(2, f"Current hit rate: {msg_info[1]}")
                 self.result_obj.current_time = self.ipv6_stability_monitor.current_time
                 self.result_obj.current_scan = msg_info[0]
                 self.result_obj.current_hit_rate = msg_info[1]

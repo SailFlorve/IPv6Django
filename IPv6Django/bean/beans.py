@@ -32,6 +32,13 @@ class StatusInternal(BaseBean):
         self.message = str(self.__message_dict)
         return self
 
+    def reset(self):
+        if "detail" in self.__message_dict:
+            del self.__message_dict["detail"]
+            self.message = str(self.__message_dict)
+        else:
+            pass
+
 
 class Status(StatusInternal):
     OK = StatusInternal("10000", "成功")
@@ -63,7 +70,6 @@ class IPv6TaskParams(BaseBean):
     rate: str = ""
     port: str = ""
     vuln_params: str = ""
-    valid_upload_addr: int = 0  # 上传的地址文件中有效的地址数量
     allow_local_ipv6: int = 0
     times: int = 0
     interval: int = 0
@@ -84,6 +90,8 @@ class IPv6TaskResult(BaseBean):
     current_cmd: str = ""  # 当前原生命令
     parse_cmd_1: str = ""  # 解析后的命令
     parse_cmd_2: str = ""  # 解析后的命令，如果上个变量不够用则用这个
+
+    valid_upload_addr: int = 0  # 上传的地址文件中有效的地址数量
 
 
 class IPv6GenerateTaskResult(IPv6TaskResult):
@@ -170,5 +178,5 @@ class VulnScript(BaseBean):
 
 
 if __name__ == '__main__':
-    d1 = {"day": 1, "hit_rate": "0.88%"}
-    d2 = {"day": 2, "hit_rate": "0.76%"}
+    print(Status.OK.with_extra("666"))
+    print(Status.OK)

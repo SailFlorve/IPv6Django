@@ -6,20 +6,7 @@ from IPv6Django.models import VulnScriptModel
 
 
 class VulnScripts:
-    vuln_scripts = [('ftp-libopie',
-                     'Checks if an FTPd is prone to CVE-2010-1938 (OPIE off-by-one stack overflow),\na vulnerability discovered by Maksymilian Arciemowicz and Adam "pi3" Zabrocki.\nSee the advisory at'),
-                    ('ftp-proftpd-backdoor',
-                     'Tests for the presence of the ProFTPD 1.3.3c backdoor reported as BID\n45150. This script attempts to exploit the backdoor using the innocuous'),
-                    ('ftp-vsftpd-backdoor',
-                     'Tests for the presence of the vsFTPd 2.3.4 backdoor reported on 2011-07-04\n(CVE-2011-2523). This script attempts to exploit the backdoor using the\ninnocuous'),
-                    ('http-cookie-flags',
-                     'Examines cookies set by HTTP services.  Reports any session cookies set\nwithout the httponly flag.  Reports any session cookies set over SSL without\nthe secure flag.  If http-enum.nse is also run, any interesting paths found\nby it will be checked in addition to the root.'),
-                    ('http-cross-domain-policy',
-                     'Checks the cross-domain policy file (/crossdomain.xml) and the client-acces-policy file (/clientaccesspolicy.xml)\nin web applications and lists the trusted domains. Overly permissive settings enable Cross Site Request Forgery\nattacks and may allow attackers to access sensitive data. This script is useful to detect permissive\nconfigurations and possible domain names available for purchase to exploit the application.'),
-                    ('http-csrf', 'This script detects Cross Site Request Forgeries (CSRF) vulnerabilities.'),
-                    ('http-dlink-backdoor',
-                     'Detects a firmware backdoor on some D-Link routers by changing the User-Agent\nto a "secret" value. Using the "secret" User-Agent bypasses authentication\nand allows admin access to the router.'),
-                    ('http-dombased-xss',
+    vuln_scripts = [('http-dombased-xss',
                      'It looks for places where attacker-controlled information in the DOM may be used\nto affect JavaScript execution in certain ways. The attack is explained here:'),
                     ('http-enum', 'Enumerates directories used by popular web applications and servers.'),
                     ('http-fileupload-exploiter',
@@ -79,34 +66,6 @@ class VulnScripts:
                     (
                         'http-vuln-cve2017-1001000',
                         'Attempts to detect a privilege escalation vulnerability in Wordpress 4.7.0 and 4.7.1 that\nallows unauthenticated users to inject content in posts.'),
-                    ('puppet-naivesigning',
-                     'Detects if naive signing is enabled on a Puppet server. This enables attackers\nto create any Certificate Signing Request and have it signed, allowing them\nto impersonate as a puppet agent. This can leak the configuration of the agents\nas well as any other sensitive information found in the configuration files.'),
-                    ('qconn-exec',
-                     'Attempts to identify whether a listening QNX QCONN daemon allows\nunauthenticated users to execute arbitrary operating system commands.'),
-                    ('rdp-vuln-ms12-020', 'Checks if a machine is vulnerable to MS12-020 RDP vulnerability.'),
-                    ('realvnc-auth-bypass',
-                     'Checks if a VNC server is vulnerable to the RealVNC authentication bypass\n(CVE-2006-2369).'),
-                    ('rmi-vuln-classloader',
-                     'Tests whether Java rmiregistry allows class loading.  The default\nconfiguration of rmiregistry allows loading classes from remote URLs,\nwhich can lead to remote code execution. The vendor (Oracle/Sun)\nclassifies this as a design feature.'),
-                    ('rsa-vuln-roca',
-                     'Detects RSA keys vulnerable to Return Of Coppersmith Attack (ROCA) factorization.'),
-                    (
-                        'samba-vuln-cve-2012-1182',
-                        'Checks if target machines are vulnerable to the Samba heap overflow vulnerability CVE-2012-1182.'),
-                    ('smb-double-pulsar-backdoor',
-                     'Checks if the target machine is running the Double Pulsar SMB backdoor.'),
-                    (
-                        'smb-vuln-conficker',
-                        'Detects Microsoft Windows systems infected by the Conficker worm. This check is dangerous and\nit may crash systems.'),
-                    ('smb-vuln-cve-2017-7494',
-                     'Checks if target machines are vulnerable to the arbitrary shared library load\nvulnerability CVE-2017-7494.'),
-                    (
-                        'smb-vuln-cve2009-3103',
-                        'Detects Microsoft Windows systems vulnerable to denial of service (CVE-2009-3103).\nThis script will crash the service if it is vulnerable.'),
-                    ('smb-vuln-ms06-025',
-                     'Detects Microsoft Windows systems with Ras RPC service vulnerable to MS06-025.'),
-                    ('smb-vuln-ms07-029',
-                     'Detects Microsoft Windows systems with Dns Server RPC vulnerable to MS07-029.'),
                     (
                         'smb-vuln-ms08-067',
                         'Detects Microsoft Windows systems vulnerable to the remote code execution vulnerability\nknown as MS08-067. This check is dangerous and it may crash systems.'),
@@ -141,7 +100,7 @@ class VulnScriptManager:
     def load_scripts() -> list[VulnScriptModel]:
         result_list = []
         urlopen = urllib.request.urlopen("https://nmap.org/nsedoc/categories/vuln.html")
-        bs4 = BeautifulSoup(urlopen.read())
+        bs4 = BeautifulSoup(urlopen.read(), 'lxml')
         # bs4.findAll('dt')[0].next.next
         # bs4.findAll('dt')[0].nextSibling.next.next.next
         all_dt = bs4.findAll('dt')

@@ -12,6 +12,10 @@ class CheckDef:
     name: str
     type: str
     values: list | range | None = None  # 可选值
+    where: int = 0  # 0: form_data, 1: params
+
+    PARAMS = 0
+    FORM_DATA = 1
 
 
 def request_verify(require_params: list[str] | None = None,
@@ -46,35 +50,43 @@ def request_verify(require_params: list[str] | None = None,
                     return CustomResponse(Status.LACK_PARAM.with_extra(f"缺少参数: {form_data}"))
 
             for check_type in check_type_list:
-                if check_type.name not in request.query_params:
+                if check_type.where == CheckDef.PARAMS and check_type.name not in request.query_params:
+                    continue
+                if check_type.where == CheckDef.FORM_DATA and check_type.name not in request.POST:
                     continue
 
                 if check_type.type == 'int':
                     try:
-                        int(request.query_params[check_type.name])
+                        value = (request.query_params[check_type.name] if check_type.where == CheckDef.PARAMS else
+                                 request.POST.get(check_type.name))
+                        int(value)
                     except ValueError:
                         return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是整数"))
 
                     if check_type.values is not None \
-                            and int(request.query_params[check_type.name]) not in check_type.values:
+                            and int(value) not in check_type.values:
                         return CustomResponse(
                             Status.PARAM_ERROR.with_extra(
                                 f"参数 {check_type.name} 不在可选范围 {check_type.values} 内"))
 
                 elif check_type.type == 'float':
                     try:
-                        float(request.query_params[check_type.name])
+                        value = (request.query_params[check_type.name] if check_type.where == CheckDef.PARAMS else
+                                 request.POST.get(check_type.name))
+                        float(value)
                     except ValueError:
                         return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是浮点数"))
                     if check_type.values is not None \
-                            and float(request.query_params[check_type.name]) not in check_type.values:
+                            and float(value) not in check_type.values:
                         return CustomResponse(Status.PARAM_ERROR.with_extra(
                             f"参数 {check_type.name} 不在可选范围 {check_type.values} 内"))
 
                 elif check_type.type == 'bool':
-                    if request.query_params[check_type.name] == 'true':
+                    value = (request.query_params[check_type.name] if check_type.where == CheckDef.PARAMS else
+                             request.POST.get(check_type.name))
+                    if value == 'true':
                         pass
-                    elif request.query_params[check_type.name] == 'false':
+                    elif value == 'false':
                         pass
                     else:
                         return CustomResponse(Status.PARAM_ERROR.with_extra(f"参数 {check_type.name} 不是布尔值"))

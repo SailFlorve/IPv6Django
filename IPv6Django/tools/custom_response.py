@@ -13,6 +13,8 @@ class CustomResponse(Response):
         code = status.status
         msg = status.message
 
+        status.reset()
+
         if isinstance(data, Serializer):
             msg = (
                 'You passed a Serializer instance as data, but '

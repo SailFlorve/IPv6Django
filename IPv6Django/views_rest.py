@@ -23,32 +23,32 @@ class IPv6TaskAPIView(APIView):
         super(IPv6TaskAPIView, self).__init__()
         self.ipv6_manager = Singleton.get_ipv6_controller()
 
-    @request_verify(require_params=['task_type', 'name'],
-                    require_form_datas=['ipv6_file'],
+    @request_verify(require_params=['task_type'],
+                    require_form_datas=['ipv6_file', 'name'],
                     check_types=[CheckDef('task_type',
                                           'int',
                                           [IPv6TaskModel.TYPE_GENERATE,
                                            IPv6TaskModel.TYPE_VULN_SCAN,
                                            IPv6TaskModel.TYPE_STABILITY]),
-                                 CheckDef('allow_local_ipv6', 'int', [0, 1]),
-                                 CheckDef('times', 'int', range(1, 31)),
-                                 CheckDef('interval', 'int', range(1, 25)),
-                                 CheckDef('alias_det', 'int', [0, 1]),
+                                 CheckDef('allow_local_ipv6', 'int', [0, 1], where=CheckDef.FORM_DATA),
+                                 CheckDef('times', 'int', range(1, 31), where=CheckDef.FORM_DATA),
+                                 CheckDef('interval', 'int', range(1, 25), where=CheckDef.FORM_DATA),
+                                 CheckDef('alias_det', 'int', [0, 1], where=CheckDef.FORM_DATA),
                                  ]
                     )
     def post(self, request: Request):
         f = request.FILES.get('ipv6_file')
-        name = request.query_params.get('name')
-        budget = request.query_params.get('budget')
-        probe = request.query_params.get('probe')
-        rate = request.query_params.get('rate')
-        port = request.query_params.get('port', 0)
         task_type = int(request.query_params.get('task_type'))
-        vuln_params = request.query_params.get('vuln_params')
-        allow_local_ipv6 = int(request.query_params.get('local', 0))
-        times = int(request.query_params.get('times', 0))
-        interval = int(request.query_params.get('interval', 0))
-        alias_det = int(request.query_params.get('alias_det', 0))
+        name = request.POST.get('name')
+        budget = request.POST.get('budget')
+        probe = request.POST.get('probe')
+        rate = request.POST.get('rate')
+        port = request.POST.get('port', 0)
+        vuln_params = request.POST.get('vuln_params')
+        allow_local_ipv6 = int(request.POST.get('local', 0))
+        times = int(request.POST.get('times', 0))
+        interval = int(request.POST.get('interval', 0))
+        alias_det = int(request.POST.get('alias_det', 0))
 
         if task_type == IPv6TaskModel.TYPE_GENERATE:
             if not CommonTools.require_not_none(name, budget, probe, rate):
@@ -60,8 +60,8 @@ class IPv6TaskAPIView(APIView):
                     Status.LACK_PARAM.with_extra('name, probe, rate, times, interval 中的参数不能为空'))
 
         params = IPv6TaskParams(task_type, name, "",
-                                budget, probe, rate, port, vuln_params, 0,
-                                allow_local_ipv6, times, interval, alias_det)
+                                budget, probe, rate, port, vuln_params,
+                                allow_local_ipv6, times, interval, alias_det=alias_det)
 
         return self.ipv6_manager.start_task(f, params)
 
