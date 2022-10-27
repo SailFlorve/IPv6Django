@@ -39,6 +39,12 @@ class StatusInternal(BaseBean):
         else:
             pass
 
+    def to_dict(self):
+        return {
+            "status": self.status,
+            "message": self.message
+        }
+
 
 class Status(StatusInternal):
     OK = StatusInternal("10000", "成功")

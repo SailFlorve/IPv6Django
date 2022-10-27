@@ -37,5 +37,5 @@ class ExceptionGlobeMiddleware(MiddlewareMixin):
         print(exception)
 
         # 捕获其他异常，直接返回 500
-        status = Status(Status.SERVER_EXCEPTION, f"服务器异常: {exception}")
+        status = Status.SERVER_EXCEPTION.with_extra(f"服务器异常: {exception}")
         return JsonResponse(status.to_dict(), status=500)
