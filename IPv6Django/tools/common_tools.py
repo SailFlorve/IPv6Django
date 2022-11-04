@@ -192,6 +192,8 @@ class CommonTools:
                 if file != target_file_path:
                     file.unlink()
 
+
+class RandomTool:
     @staticmethod
     def choose_randomly(data_list: list, count: int = 1):
         """
@@ -206,6 +208,14 @@ class CommonTools:
             return random.sample(data_list, count)[0]
         else:
             return random.sample(data_list, count)
+
+    @staticmethod
+    def generate_random_num_seq(start: int, end: int, count: int) -> str:
+        return ''.join(map(str, random.sample(range(start, end), count)))
+
+    @staticmethod
+    def rand_int(start: int, end: int) -> int:
+        return random.randint(start, end)
 
 
 class ZipTool:
