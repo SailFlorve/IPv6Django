@@ -9,7 +9,8 @@ from IPv6Django.bean.beans import IPv6TaskParams, Status, IPv6Task, PageInfo, IP
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_workflow import IPv6Workflow
 from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer, VulnScriptModel
-from IPv6Django.tools.common_tools import CommonTools, ZipTool, Logger
+from IPv6Django.tools.common_tools import CommonTools, ZipTool
+from IPv6Django.tools.logger import Logger
 from IPv6Django.tools.vuln_script_manager import VulnScriptManager
 from IPv6Django.tools.custom_response import CustomResponse
 
@@ -49,8 +50,6 @@ class IPv6Controller:
         workflow.set_on_task_finished_callback(self.__on_task_finish)
         self.ipv6_workflow_dict[task_id] = workflow
 
-        workflow.start()
-
         IPv6TaskModel.objects.create(task_id=task_id,
                                      task_name=params.task_name,
                                      task_type=params.task_type,
@@ -59,6 +58,8 @@ class IPv6Controller:
                                      upload_path=workflow.file_save_path,
                                      params=params.to_json(),
                                      result="")
+
+        workflow.start()
 
         Logger.log_to_file(f"Task created. Task id: {task_id}, use IPv6: {ipv6}", task_id)
         return CustomResponse(return_status, IPv6Task(task_id, params.task_name, ipv6).to_dict())

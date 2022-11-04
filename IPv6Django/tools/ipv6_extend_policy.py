@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import IO
 
 from IPv6Django.constant.constant import Constant
-from IPv6Django.tools.common_tools import Logger
+from IPv6Django.tools.logger import Logger
 
 
 @dataclass

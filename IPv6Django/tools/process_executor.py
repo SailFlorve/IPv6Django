@@ -81,7 +81,7 @@ class ProcessExecutor:
         :param silent: if True, does not print to the stdout, only buffers.
         :return: subprocess return code, if blocking (finished_callback specified), else None.
         """
-        print(f"exec: {cmd}")
+        print(f"ProcessExecutor: exec: {cmd}")
         self.sub_piper = _SubPiper(
             cmd,
             self.__on_stdout,
@@ -142,6 +142,8 @@ class _SubPiper:
         self.out_queue = Queue()
         self.err_queue = Queue()
 
+        self.is_finished = False
+
     def execute(self) -> Optional[Tuple[int, List[str], List[str]]]:
         # add user path
         local_env = os.environ.copy()
@@ -192,17 +194,21 @@ class _SubPiper:
             wait_thread.start()
             return None
 
-    @staticmethod
-    def _enqueue_lines(out: _FILE, queue: Queue):
+    def _enqueue_lines(self, out: _FILE, queue: Queue):
         """
         Helper method
         Enqueues lines from out to the queue
         """
         for line in iter(out.readline, b""):
+            # print("enqueue line: ", line, self.is_finished)
             if isinstance(line, bytes):
                 if hasattr(out, "encoding"):
                     line = line.decode(out.encoding)
             queue.put(line.rstrip())
+
+            if self.is_finished:
+                break
+
         out.close()
 
     def _handle_lines(self):
@@ -243,7 +249,7 @@ class _SubPiper:
             if retcode is not None:
                 # before exiting, check if the process put extra lines to the outputs, catch them as well.
                 while True:
-                    time.sleep(0.001)
+                    time.sleep(0.01)
                     self._handle_lines()
                     # no more lines, we can really finish.
                     if self.out_queue.empty() and self.err_queue.empty():
@@ -252,26 +258,39 @@ class _SubPiper:
                         break
                 break
 
+        self.is_finished = True
+
         if self.finished_callback is not None:
             self.finished_callback(retcode)
 
+        print("ProcessExecutor:", self.cmd, "finished")
         return retcode
 
 
 if __name__ == '__main__':
-    def cbk(s):
-        print(s)
+    def fcbk(retcode):
+        print(f"Finished with retcode: {retcode}")
+        print("start ls")
+        s = _SubPiper(
+            "ls",
+            cbk,
+            cbk,
+        )
+
+        s.execute()
+        print("stop  ls")
 
 
-    def finish(c):
-        print("Finish:", threading.currentThread().ident)
-        time.sleep(5)
-        print(c)
+    def cbk(line):
+        print(line)
 
 
-    pe1 = ProcessExecutor()
-    pe2 = ProcessExecutor()
+    _subpiper = _SubPiper(
+        "zmap --probe-module=icmp6_echoscan --ipv6-target-file=active_2w --output-file=output_tmp --ipv6-source-ip=2001:4ba5:5a2b:1008:d50e:c824:2529:93f4 --bandwidth=10M --cooldown-time=4",
+        cbk,
+        cbk,
+        finished_callback=fcbk
+    )
 
-    pe1.execute(
-        "nmap -6 --script=vuln 2001:0250:c006:0000:0000:0000:0000:0033 -oA result/nmap_result.xml -Pn -n -v -v ", cbk,
-        cbk)
+    _subpiper.execute()
+    print(1)

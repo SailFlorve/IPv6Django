@@ -15,7 +15,8 @@ from IPv6Django.ipv6_task.ipv6_stability_monitor import IPv6StabilityMonitor
 from IPv6Django.ipv6_task.ipv6_vuln_scan import IPv6VulnerabilityScanner
 from IPv6Django.models import IPv6TaskModel
 from IPv6Django.tools.command_parser import CommandParser
-from IPv6Django.tools.common_tools import CommonTools, Logger
+from IPv6Django.tools.common_tools import CommonTools
+from IPv6Django.tools.logger import Logger
 
 
 class IPv6Workflow:
@@ -73,6 +74,8 @@ class IPv6Workflow:
                 self.current_state = IPv6TaskModel.STATE_STABILITY
             case _:
                 pass
+
+        self._set_current_state(self.current_state)
 
     @abstractmethod
     def stop(self):
@@ -296,7 +299,7 @@ class IPv6VulnerabilityScanWorkflow(IPv6Workflow):
     def __init__(self, task_id: str, params: IPv6TaskParams, upload_file):
         super(IPv6VulnerabilityScanWorkflow, self).__init__(task_id, params, upload_file)
         self.ipv6_vulnerability_scanner = IPv6VulnerabilityScanner(
-            self.file_save_path, self.work_path, params.vuln_params)
+            self.file_save_path, self.work_path, params)
         self.ipv6_vulnerability_scanner.set_cmd_out_callback(self._stdout_callback)
 
     def start(self):
@@ -333,7 +336,7 @@ class IPv6StabilityWorkflow(IPv6Workflow):
         super(IPv6StabilityWorkflow, self).__init__(task_id, params, upload_file)
         self.ipv6_stability_monitor = IPv6StabilityMonitor(self.file_save_path, self.work_path, params)
         self.ipv6_stability_monitor.set_cmd_out_callback(self._stdout_callback)
-        self.ipv6_stability_monitor.set_single_monitor_finish_callback(self.__on_single_monitor_finish)
+        self.ipv6_stability_monitor.set_single_monitor_finish_callback(self.__on_single_monitor_finished)
         self.ipv6_stability_monitor.set_finished_callback(self._on_task_finished)
 
     def start(self):
@@ -366,8 +369,8 @@ class IPv6StabilityWorkflow(IPv6Workflow):
     def _get_task_result_obj(self) -> 'IPv6StabilityResult':
         return IPv6StabilityResult()
 
-    def __on_single_monitor_finish(self):
-        self.result_obj.save()
+    def __on_single_monitor_finished(self):
+        self.result_obj.calc_result()
         self._update_result()
         Logger.log_to_file(f"Current hit rate: {self.result_obj.current_hit_rate}, "
                            f"Average hit rate: {self.result_obj.ave_hit_rate}", self.task_id)

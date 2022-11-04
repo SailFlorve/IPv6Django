@@ -2,7 +2,8 @@ from os import PathLike
 
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_task_base import IPv6TaskBase
-from IPv6Django.tools.common_tools import CommonTools, Logger
+from IPv6Django.tools.common_tools import CommonTools
+from IPv6Django.tools.logger import Logger
 
 
 class Tree6Generator(IPv6TaskBase):

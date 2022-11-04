@@ -4,7 +4,7 @@ from os import PathLike
 from typing.io import TextIO
 
 from IPv6Django.constant.constant import Constant
-from IPv6Django.tools.common_tools import Logger
+from IPv6Django.tools.logger import Logger
 from IPv6Django.tools.ipv6_classification_tool import IPv6ASNTool, IPv6StatisticsTool
 
 

@@ -8,7 +8,8 @@ from IPv6Django import settings
 from IPv6Django.bean.beans import IPv6TaskParams
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_task_base import IPv6TaskBase
-from IPv6Django.tools.common_tools import Logger
+from IPv6Django.models import IPv6TaskModel
+from IPv6Django.tools.logger import Logger
 
 
 class IPv6StabilityMonitor(IPv6TaskBase):
@@ -23,6 +24,8 @@ class IPv6StabilityMonitor(IPv6TaskBase):
 
         self.work_thread = multiprocessing.Process(target=self.__monitor)
 
+        self.is_monitoring: bool = False
+
     def run(self):
         self.work_thread.start()
 
@@ -36,6 +39,7 @@ class IPv6StabilityMonitor(IPv6TaskBase):
     # noinspection
     def __monitor(self):
         def __on_finish(ret_code):
+            self.is_monitoring = False
             if ret_code != 0:
                 self.stop()
                 self.finished_callback(ret_code)
@@ -53,6 +57,7 @@ class IPv6StabilityMonitor(IPv6TaskBase):
             if self.ipv6_params.probe != Constant.DEFAULT_PROBE:
                 scanner_cmd += f" --target-port={self.ipv6_params.port}"
 
+            self.is_monitoring = True
             # i == times - 1时阻塞调用
             ret_value = self.process_executor.execute(scanner_cmd,
                                                       finished_callback=None if i == times - 1 else __on_finish)
@@ -61,13 +66,31 @@ class IPv6StabilityMonitor(IPv6TaskBase):
                 __on_finish(ret_value[0])
                 break
 
-            Logger.log_to_file(f"Sleep {self.ipv6_params.interval} hours", path=self.work_path)
-            if settings.DEBUG:
-                sleep_time = self.ipv6_params.interval
-            else:
-                sleep_time = self.ipv6_params.interval * 60 * 60
+            interval = self.ipv6_params.interval
+            unit = self.ipv6_params.interval_unit
 
-            time.sleep(sleep_time)
+            match unit:
+                case IPv6TaskModel.INTERVAL_UNIT_HOUR:
+                    sleep_time = interval * 60 * 60
+                case IPv6TaskModel.INTERVAL_UNIT_MINUTE:
+                    sleep_time = interval * 60
+                case IPv6TaskModel.INTERVAL_UNIT_SECOND:
+                    sleep_time = interval
+                case _:
+                    raise Exception("Unknown interval unit")
+
+            Logger.log_to_file(f"Sleep {sleep_time} seconds", path=self.work_path)
+
+            while sleep_time > 0:
+                sleep_unit = 60 if sleep_time > 60 else sleep_time
+                time.sleep(sleep_unit)
+                sleep_time -= sleep_unit
+
+            if self.is_monitoring:
+                Logger.log_to_file(f"Sleep finished. Task still running, waiting...", path=self.work_path)
+
+            while self.is_monitoring:
+                time.sleep(5)
 
         self.finished_callback(0)
         Logger.log_to_file("IPv6StabilityMonitor: thread exit", path=self.work_path)

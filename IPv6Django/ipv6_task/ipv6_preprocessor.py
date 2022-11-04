@@ -4,7 +4,8 @@ from typing import Callable
 
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_task_base import IPv6TaskBase
-from IPv6Django.tools.common_tools import CommonTools, Logger
+from IPv6Django.tools.common_tools import CommonTools
+from IPv6Django.tools.logger import Logger
 
 
 class Tree6Preprocessor(IPv6TaskBase):
@@ -29,9 +30,8 @@ class Tree6Preprocessor(IPv6TaskBase):
     def __transform(self):
         cmd = f"{Constant.LIB_TREE_PATH} -T -in-std {str(self.origin_file_path)} -out-b4 {str(self.seeds_path)}"
         Logger.log_to_file(cmd, path=self.work_path)
-        self.process_executor.execute(
-            cmd,
-            finished_callback=self.__wait_file)
+        self.process_executor.execute(cmd, finished_callback=self.__wait_file)
+        # 此处返回
 
     def __wait_file(self, return_code):
         Logger.log_to_file(f"Transform finished, return code {return_code}", path=self.work_path)
@@ -80,6 +80,5 @@ class Tree6Preprocessor(IPv6TaskBase):
 
         cmd = f"{Constant.LIB_TREE_PATH} -G -in-b4 {str(self.seeds_path)} -out-tree {str(self.tree_path)}"
         Logger.log_to_file(cmd, path=self.work_path)
-        self.process_executor.execute(
-            cmd,
-            finished_callback=__on_finished)
+        ret, _, _ = self.process_executor.execute(cmd)
+        __on_finished(ret)

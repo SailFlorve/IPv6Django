@@ -30,6 +30,10 @@ class IPv6TaskModel(models.Model):
     STATE_INTERRUPT = 5
     STATE_ERROR = -1
 
+    INTERVAL_UNIT_HOUR = 0
+    INTERVAL_UNIT_MINUTE = 1
+    INTERVAL_UNIT_SECOND = 2
+
     task_id = models.CharField(max_length=100, primary_key=True)
     task_name = models.CharField(max_length=100)
     task_type = models.IntegerField(default=0)

@@ -34,6 +34,11 @@ class IPv6TaskAPIView(APIView):
                                  CheckDef('times', 'int', range(1, 31), where=CheckDef.FORM_DATA),
                                  CheckDef('interval', 'int', range(1, 25), where=CheckDef.FORM_DATA),
                                  CheckDef('alias_det', 'int', [0, 1], where=CheckDef.FORM_DATA),
+                                 CheckDef("rate", 'int', where=CheckDef.FORM_DATA),
+                                 CheckDef('budget', 'int', where=CheckDef.FORM_DATA),
+                                 CheckDef('port', 'int', where=CheckDef.FORM_DATA),
+                                 CheckDef('interval_unit', 'int', [0, 1, 2], where=CheckDef.FORM_DATA),
+                                 CheckDef('mock', 'int', [0, 1], where=CheckDef.FORM_DATA),
                                  ]
                     )
     def post(self, request: Request):
@@ -49,6 +54,8 @@ class IPv6TaskAPIView(APIView):
         times = int(request.POST.get('times', 0))
         interval = int(request.POST.get('interval', 0))
         alias_det = int(request.POST.get('alias_det', 0))
+        interval_unit = int(request.POST.get('interval_unit', 0))
+        mock = int(request.POST.get('mock', 0))
 
         if task_type == IPv6TaskModel.TYPE_GENERATE:
             if not CommonTools.require_not_none(name, budget, probe, rate):
@@ -61,7 +68,8 @@ class IPv6TaskAPIView(APIView):
 
         params = IPv6TaskParams(task_type, name, "",
                                 budget, probe, rate, port, vuln_params,
-                                allow_local_ipv6, times, interval, alias_det=alias_det)
+                                allow_local_ipv6, times, interval, alias_det=alias_det,
+                                interval_unit=interval_unit, mock=mock)
 
         return self.ipv6_manager.start_task(f, params)
 

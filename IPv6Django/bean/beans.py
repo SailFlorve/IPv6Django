@@ -22,20 +22,23 @@ class StatusInternal(BaseBean):
         super(StatusInternal, self).__init__()
         self.status = status
         self.__message_dict = {"title": message}
-        self.message = str(self.__message_dict)
+        self.message = self.__message_to_json()
+
+    def __message_to_json(self):
+        return json.dumps(self.__message_dict, ensure_ascii=False)
 
     def with_extra(self, extra: str) -> 'StatusInternal':
         """
         给message附加一些信息，返回自己
         """
         self.__message_dict["detail"] = extra
-        self.message = str(self.__message_dict)
+        self.message = self.__message_to_json()
         return self
 
     def reset(self):
         if "detail" in self.__message_dict:
             del self.__message_dict["detail"]
-            self.message = str(self.__message_dict)
+            self.message = self.__message_to_json()
         else:
             pass
 
@@ -80,6 +83,8 @@ class IPv6TaskParams(BaseBean):
     times: int = 0
     interval: int = 0
     alias_det: int = 0
+    interval_unit: int = 0
+    mock: int = 0
 
 
 @dataclass
@@ -134,12 +139,12 @@ class IPv6StabilityResult(IPv6TaskResult):
     result_history_list: list[dict[str]] = []
     result_history: str
 
-    def save(self):
+    def calc_result(self):
         self.result_history_list.append(
             {"time": self.current_time, "hit_rate": self.current_hit_rate}
         )
 
-        self.result_history = str(self.result_history_list)
+        self.result_history = json.dumps(self.result_history_list)
 
         self.ave_hit_rate = 0
         for result_dict in self.result_history_list:
