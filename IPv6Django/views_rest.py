@@ -32,7 +32,7 @@ class IPv6TaskAPIView(APIView):
                                            IPv6TaskModel.TYPE_STABILITY]),
                                  CheckDef('allow_local_ipv6', 'int', [0, 1], where=CheckDef.FORM_DATA),
                                  CheckDef('times', 'int', range(1, 31), where=CheckDef.FORM_DATA),
-                                 CheckDef('interval', 'int', range(1, 25), where=CheckDef.FORM_DATA),
+                                 CheckDef('interval', 'int', where=CheckDef.FORM_DATA),
                                  CheckDef('alias_det', 'int', [0, 1], where=CheckDef.FORM_DATA),
                                  CheckDef("rate", 'int', where=CheckDef.FORM_DATA),
                                  CheckDef('budget', 'int', where=CheckDef.FORM_DATA),
