@@ -6,7 +6,7 @@ from IPv6Django.constant import vuln_scripts
 from IPv6Django.models import VulnScriptModel
 
 
-class VulnScriptManager:
+class VulnDatabaseManager:
     def __init__(self):
         pass
 
@@ -22,14 +22,22 @@ class VulnScriptManager:
 
     @staticmethod
     def load_scripts() -> list[VulnScriptModel]:
-        result_list = []
-        urlopen = urllib.request.urlopen("https://nmap.org/nsedoc/categories/vuln.html")
-        bs4 = BeautifulSoup(urlopen.read(), 'lxml')
-        # bs4.findAll('dt')[0].next.next
-        # bs4.findAll('dt')[0].nextSibling.next.next.next
-        all_dt = bs4.findAll('dt')
-        for dt in all_dt:
-            vuln_name = str(dt.next.next).strip()
-            vuln_des = str(dt.nextSibling.next.next.next).strip()
-            result_list.append(VulnScriptModel(vuln_name, vuln_des))
-        return result_list
+        urlopen = urllib.request.urlopen("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=ipv6")
+        ret_code = urlopen.getcode()
+        if ret_code != 200:
+            raise ConnectionError(f'请求更新错误: {ret_code}')
+
+        bs4 = BeautifulSoup(urlopen.read())
+        all_td = bs4.find('div', {'id': 'TableWithRules'}).find_all('td')
+
+        vuln_name = ""
+
+        scripts_list: list[VulnScriptModel] = []
+        for i, td in enumerate(all_td):
+            if i % 2 == 0:
+                vuln_name = str(td.next.next).strip()
+            else:
+                vuln_des = str(td.next).strip()
+                scripts_list.append(VulnScriptModel(name=vuln_name, description=vuln_des))
+
+        return scripts_list

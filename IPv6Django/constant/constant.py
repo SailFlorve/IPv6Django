@@ -35,3 +35,5 @@ class Constant:
     ACTIVE_ADDR_FILE = "discovered_addrs"
 
     SCRIPT_DIR_PATH = '/usr/share/nmap/scripts'
+
+    VULN_DB_VERSION_INITIAL = 'original'

@@ -97,5 +97,25 @@ def filter_cernet_ipv6():
                     f2.write(ip)
 
 
+def get_cve_scripts():
+    uo = urllib.request.urlopen("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=ipv6")
+    if uo.getcode() != 200:
+        return
+    bs4 = BeautifulSoup(uo.read())
+    all_td = bs4.find('div', {'id': 'TableWithRules'}).find_all('td')
+
+    vuln_name = ""
+    vuln_des = ""
+    scripts_list = []
+    for i, td in enumerate(all_td):
+        if i % 2 == 0:
+            vuln_name = str(td.next.next).strip()
+        else:
+            vuln_des = str(td.next).strip()
+            scripts_list.append((vuln_name, vuln_des))
+
+    print(scripts_list)
+
+
 if __name__ == '__main__':
-    filter_cernet_ipv6()
+    get_cve_scripts()

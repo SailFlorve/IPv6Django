@@ -1,10 +1,8 @@
 import multiprocessing
 import pathlib
-import threading
 import time
 from typing import Callable
 
-from IPv6Django import settings
 from IPv6Django.bean.beans import IPv6TaskParams
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_task_base import IPv6TaskBase

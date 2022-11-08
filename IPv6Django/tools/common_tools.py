@@ -5,6 +5,7 @@ import random
 import shutil
 import socket
 import subprocess
+import time
 import uuid
 import zipfile
 
@@ -192,6 +193,15 @@ class CommonTools:
                 if file != target_file_path:
                     file.unlink()
 
+    @staticmethod
+    def get_format_time(fmt: str = '%Y%m%d%H%M%S') -> str:
+        """
+        获取格式化时间
+        @param fmt: %Y %m %d %H %M %S
+        @return: 格式化时间str
+        """
+        return time.strftime(fmt, time.localtime())
+
 
 class RandomTool:
     @staticmethod
@@ -241,7 +251,4 @@ class ZipTool:
 
 
 if __name__ == '__main__':
-    CommonTools.merge_all_file(
-        pathlib.Path('/root/PyCharmProjects/IPv6Django/result/G-270e6722-5453-11ed-8052-7503217395a5/targets'),
-        pathlib.Path(
-            '/root/PyCharmProjects/IPv6Django/result/G-270e6722-5453-11ed-8052-7503217395a5/targets/targets_all.txt'))
+    print(CommonTools.get_format_time("%Y%m.%d%H%M%S")[2:])

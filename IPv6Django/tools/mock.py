@@ -1,7 +1,5 @@
-import random
-
 from IPv6Django.constant import vuln_scripts
-from IPv6Django.tools.common_tools import CommonTools, RandomTool
+from IPv6Django.tools.common_tools import RandomTool
 
 
 class IPv6TaskMocker:

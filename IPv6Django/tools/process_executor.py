@@ -5,7 +5,6 @@ import os
 import shlex
 import subprocess
 import sys
-import threading
 import time
 from queue import Queue
 from threading import Thread

@@ -26,7 +26,7 @@ api_url = [
 ]
 
 api_v1_ipv6_task = [url('^ipv6_task', include(api_url)),
-                    url(r'script$', ScriptAPIView.as_view(), name='script')]  # API 的 v1 版本
+                    url(r'vuln_database$', ScriptAPIView.as_view(), name='vuln_database')]  # API 的 v1 版本
 
 api_versions = [url(r'^v1/', include(api_v1_ipv6_task))]
 

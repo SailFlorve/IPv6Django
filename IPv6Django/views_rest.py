@@ -159,13 +159,13 @@ class ScriptAPIView(APIView):
     def get(self, request: Request):
         page_num = int(request.query_params.get('pageNum', 1))
         page_size = int(request.query_params.get('pageSize', -1))
-        return self.ipv6_manager.get_scripts(page_num, page_size)
+        return self.ipv6_manager.get_vuln_database(page_num, page_size)
 
     def post(self, request: Request):
-        return self.ipv6_manager.check_scripts_update()
+        return self.ipv6_manager.check_vuln_database_update()
 
     def delete(self, request: Request):
-        return self.ipv6_manager.delete_scripts()
+        return self.ipv6_manager.delete_vuln_database()
 
 
 if __name__ == '__main__':

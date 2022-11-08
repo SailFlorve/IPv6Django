@@ -8,21 +8,22 @@ from django.http import StreamingHttpResponse, HttpResponse, FileResponse
 from IPv6Django.bean.beans import IPv6TaskParams, Status, IPv6Task, PageInfo, IPv6Statistics, UpdateInfo
 from IPv6Django.constant.constant import Constant
 from IPv6Django.ipv6_task.ipv6_workflow import IPv6Workflow
-from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer, VulnScriptModel
+from IPv6Django.models import IPv6TaskModel, IPv6TaskSerializer, VulnScriptModel, ConfigModel
 from IPv6Django.tools.common_tools import CommonTools, ZipTool
-from IPv6Django.tools.logger import Logger
-from IPv6Django.tools.vuln_script_manager import VulnScriptManager
 from IPv6Django.tools.custom_response import CustomResponse
+from IPv6Django.tools.logger import Logger
+from IPv6Django.tools.vuln_script_manager import VulnDatabaseManager
 
 
 # noinspection PyMethodMayBeStatic
 class IPv6Controller:
     """
-    提供view层调用的接口
+    提供view层调用的接口，一般来说负责接口到算法之间的业务逻辑
+    保存了IPv6Workflow的所有实例，所以此类应是单例的
     """
 
     def __init__(self):
-        self.ipv6_workflow_dict: dict[str, IPv6Workflow] = {}
+        self._ipv6_workflow_dict: dict[str, IPv6Workflow] = {}
 
     def start_task(self, f, params: IPv6TaskParams):
 
@@ -48,7 +49,7 @@ class IPv6Controller:
         workflow = IPv6Workflow.create(params.task_type, task_id,
                                        params, f)
         workflow.set_on_task_finished_callback(self.__on_task_finish)
-        self.ipv6_workflow_dict[task_id] = workflow
+        self._ipv6_workflow_dict[task_id] = workflow
 
         IPv6TaskModel.objects.create(task_id=task_id,
                                      task_name=params.task_name,
@@ -238,7 +239,7 @@ class IPv6Controller:
 
         Logger.log_to_file(f"Stop task - {task_name}", task_id)
 
-        ipv6_workflow = self.ipv6_workflow_dict.get(task_id)
+        ipv6_workflow = self._ipv6_workflow_dict.get(task_id)
         if ipv6_workflow is None:
             return CustomResponse(Status.TASK_NOT_RUNNING)
 
@@ -267,8 +268,8 @@ class IPv6Controller:
 
         return CustomResponse(Status.OK)
 
-    def get_scripts(self, page_num, page_size):
-        VulnScriptManager.init_db_if_empty()
+    def get_vuln_database(self, page_num, page_size):
+        VulnDatabaseManager.init_db_if_empty()
 
         query_set = VulnScriptModel.objects.all()
         paginator = Paginator(query_set, page_size)
@@ -277,28 +278,33 @@ class IPv6Controller:
         page_info = PageInfo(page_num, page_size, query_set.count())
         return CustomResponse(Status.OK, page_data.values(), page_info=page_info if page_size != -1 else None)
 
-    def check_scripts_update(self):
+    def check_vuln_database_update(self):
         try:
-            scripts = VulnScriptManager.load_scripts()
+            scripts = VulnDatabaseManager.load_scripts()
         except Exception as e:
             return CustomResponse(Status.UPDATE_SCRIPTS_ERROR.with_extra(str(e)))
 
-        loaded_scripts_set = frozenset(scripts)
         query_set = VulnScriptModel.objects.all()
-        local_scripts_set = frozenset([model for model in query_set])
 
-        if loaded_scripts_set == local_scripts_set:
-            return CustomResponse(Status.OK.with_extra("当前已经是最新版本"), UpdateInfo(0, ""))
+        if query_set.count() == len(scripts):
+            current_version = ConfigModel.objects.get(id=1)
+            return CustomResponse(Status.OK.with_extra("当前已经是最新版本"),
+                                  UpdateInfo(0, current_version.vuln_version))
         else:
-            for script_model in scripts:
-                VulnScriptModel.objects.get_or_create(name=script_model.name, description=script_model.description)
-            scripts_diff = len(loaded_scripts_set.difference(local_scripts_set))
-            return CustomResponse(Status.OK.with_extra(f"更新了{scripts_diff}条数据"), UpdateInfo(scripts_diff, ""))
+            scripts_diff = len(scripts) - query_set.count()
+            VulnScriptModel.objects.bulk_create(scripts, ignore_conflicts=True)
 
-    def delete_scripts(self):
+            version = CommonTools.get_format_time("%Y%m.%d%H%M%S")[2:]
+            ConfigModel.change_vuln_version(version)
+            return CustomResponse(Status.OK.with_extra(f"更新了{scripts_diff}条数据"),
+                                  UpdateInfo(scripts_diff, version))
+
+    def delete_vuln_database(self):
         try:
-            VulnScriptModel.objects.all().delete()
-            return CustomResponse(Status.OK)
+            deleted, rows_count = VulnScriptModel.objects.all().delete()
+            version = Constant.VULN_DB_VERSION_INITIAL
+            ConfigModel.change_vuln_version(version)
+            return CustomResponse(Status.OK, UpdateInfo(deleted, version))
         except Exception as e:
             return CustomResponse(Status.DELETE_ERROR.with_extra(str(e)))
 
@@ -332,7 +338,7 @@ class IPv6Controller:
         model.save()
 
         try:
-            del self.ipv6_workflow_dict[task_id]
+            del self._ipv6_workflow_dict[task_id]
             CommonTools.clear_task_cache(task_id)
             Logger.log_to_file(f"Task {task_id} released", task_id)
         except KeyError:

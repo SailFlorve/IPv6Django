@@ -93,8 +93,22 @@ class VulnScriptModel(models.Model):
     description = models.TextField(default="")
 
     class Meta:
-        db_table = "tb_vuln_script"
-        ordering = ["name"]
+        db_table = "tb_vuln_cve"
+        ordering = ["-name"]
+
+
+class ConfigModel(models.Model):
+    id = models.IntegerField(primary_key=True)
+    vuln_version = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = "tb_config"
+
+    @staticmethod
+    def change_vuln_version(version: str):
+        model = ConfigModel.objects.get(id=1)
+        model.vuln_version = version
+        model.save()
 
 
 if __name__ == '__main__':
