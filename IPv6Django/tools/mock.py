@@ -23,7 +23,6 @@ class IPv6TaskMocker:
         for ip in ips:
             port_list = []
             port_num = RandomTool.rand_int(1, 4)
-            print("port_num",port_num)
             for i in range(port_num):
                 script_num = RandomTool.rand_int(2, 4)
                 port_list.append(

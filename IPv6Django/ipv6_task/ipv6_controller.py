@@ -287,15 +287,15 @@ class IPv6Controller:
         query_set = VulnScriptModel.objects.all()
 
         if query_set.count() == len(scripts):
-            current_version = ConfigModel.objects.get(id=1)
+            current_version = ConfigModel.get_version()
             return CustomResponse(Status.OK.with_extra("当前已经是最新版本"),
-                                  UpdateInfo(0, current_version.vuln_version))
+                                  UpdateInfo(0, current_version))
         else:
             scripts_diff = len(scripts) - query_set.count()
             VulnScriptModel.objects.bulk_create(scripts, ignore_conflicts=True)
 
             version = CommonTools.get_format_time("%Y%m.%d%H%M%S")[2:]
-            ConfigModel.change_vuln_version(version)
+            ConfigModel.set_version(version)
             return CustomResponse(Status.OK.with_extra(f"更新了{scripts_diff}条数据"),
                                   UpdateInfo(scripts_diff, version))
 
@@ -303,7 +303,7 @@ class IPv6Controller:
         try:
             deleted, rows_count = VulnScriptModel.objects.all().delete()
             version = Constant.VULN_DB_VERSION_INITIAL
-            ConfigModel.change_vuln_version(version)
+            ConfigModel.set_version(version)
             return CustomResponse(Status.OK, UpdateInfo(deleted, version))
         except Exception as e:
             return CustomResponse(Status.DELETE_ERROR.with_extra(str(e)))

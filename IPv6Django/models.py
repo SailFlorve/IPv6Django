@@ -105,10 +105,14 @@ class ConfigModel(models.Model):
         db_table = "tb_config"
 
     @staticmethod
-    def change_vuln_version(version: str):
+    def set_version(version: str):
         model = ConfigModel.objects.get(id=1)
         model.vuln_version = version
         model.save()
+
+    @staticmethod
+    def get_version():
+        return ConfigModel.objects.get(id=1).vuln_version
 
 
 if __name__ == '__main__':
