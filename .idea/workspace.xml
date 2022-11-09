@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5998c2d8-476d-47be-995f-03d9c2ea048c" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IPv6Django/ipv6_task/ipv6_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/IPv6Django/ipv6_task/ipv6_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IPv6Django/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/IPv6Django/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/IPv6Django/tools/mock.py" beforeDir="false" afterPath="$PROJECT_DIR$/IPv6Django/tools/mock.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/6tree_mod_2.bak" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +75,13 @@
       <recent name="$PROJECT_DIR$/IPv6Django/model" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.mock">
+  <component name="RunManager" selected="Makefile Target.zip">
+    <configuration name="zip" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="zip" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
     <configuration name="common_tools" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="IPv6Django" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -193,6 +196,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Makefile Target.zip" />
         <item itemvalue="Python.mock" />
         <item itemvalue="Python.common_tools" />
         <item itemvalue="Python.python_tools" />
@@ -332,6 +336,7 @@
       <workItem from="1667555231881" duration="21000" />
       <workItem from="1667893034467" duration="6495000" />
       <workItem from="1667977425111" duration="196000" />
+      <workItem from="1667977638175" duration="1479000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit">
       <created>1662550959938</created>
@@ -466,13 +471,21 @@
       <option name="project" value="LOCAL" />
       <updated>1667899416238</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="refactor config">
+      <created>1667977704946</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1667977704946</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="Makefile" />
     <option featureType="com.intellij.fileTypeFactory" implementationName="requirements.txt" />
   </component>
   <component name="Vcs.Log.History.Properties">
@@ -498,6 +511,8 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
     <MESSAGE value="Initial commit" />
     <MESSAGE value="clear cache, file size and local ipv6 addr" />
     <MESSAGE value="scripts query and update" />
@@ -517,7 +532,8 @@
     <MESSAGE value="cancel interval range limit" />
     <MESSAGE value="enhance mock" />
     <MESSAGE value="vuln database" />
-    <option name="LAST_COMMIT_MESSAGE" value="vuln database" />
+    <MESSAGE value="refactor config" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor config" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
@@ -526,6 +542,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/IPv6Django$common_tools.coverage" NAME="common_tools Coverage Results" MODIFIED="1667898375036" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/IPv6Django/tools" />
     <SUITE FILE_PATH="coverage/IPv6Django$python_tools.coverage" NAME="python_tools Coverage Results" MODIFIED="1667894120962" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/IPv6Django/tools" />
-    <SUITE FILE_PATH="coverage/IPv6Django$mock.coverage" NAME="mock Coverage Results" MODIFIED="1667977566254" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/IPv6Django/tools" />
+    <SUITE FILE_PATH="coverage/IPv6Django$mock.coverage" NAME="mock Coverage Results" MODIFIED="1667977645945" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/IPv6Django/tools" />
   </component>
 </project>
