@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <dataSource name="db_debug">
-  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.43">
+  <database-model serializer="dbm" dbms="SQLITE" family-id="SQLITE" format-version="4.45">
     <root id="1">
       <ServerVersion>3.39.2</ServerVersion>
     </root>
@@ -1326,22 +1326,22 @@
     <table id="488" parent="166" name="tb_vuln_script"/>
     <column id="489" parent="482" name="id">
       <AutoIncrement>1</AutoIncrement>
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>1</Position>
     </column>
     <column id="490" parent="482" name="app">
-      <DataType>varchar(255)|0s</DataType>
+      <DasType>varchar(255)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
     <column id="491" parent="482" name="name">
-      <DataType>varchar(255)|0s</DataType>
+      <DasType>varchar(255)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
     </column>
     <column id="492" parent="482" name="applied">
-      <DataType>datetime|0s</DataType>
+      <DasType>datetime|0s</DasType>
       <NotNull>1</NotNull>
       <Position>4</Position>
     </column>
@@ -1350,23 +1350,23 @@
       <Primary>1</Primary>
     </key>
     <column id="494" parent="483" name="type">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>1</Position>
     </column>
     <column id="495" parent="483" name="name">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>2</Position>
     </column>
     <column id="496" parent="483" name="tbl_name">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>3</Position>
     </column>
     <column id="497" parent="483" name="rootpage">
-      <DataType>INT|0s</DataType>
+      <DasType>INT|0s</DasType>
       <Position>4</Position>
     </column>
     <column id="498" parent="483" name="sql">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <Position>5</Position>
     </column>
     <column id="499" parent="484" name="name">
@@ -1376,12 +1376,12 @@
       <Position>2</Position>
     </column>
     <column id="501" parent="485" name="id">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>1</Position>
     </column>
     <column id="502" parent="485" name="vuln_version">
-      <DataType>varchar(100)|0s</DataType>
+      <DasType>varchar(100)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
@@ -1390,52 +1390,52 @@
       <Primary>1</Primary>
     </key>
     <column id="504" parent="486" name="task_id">
-      <DataType>varchar(100)|0s</DataType>
+      <DasType>varchar(100)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>1</Position>
     </column>
     <column id="505" parent="486" name="task_name">
-      <DataType>varchar(100)|0s</DataType>
+      <DasType>varchar(100)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
     <column id="506" parent="486" name="task_type">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
     </column>
     <column id="507" parent="486" name="state">
-      <DataType>INTEGER|0s</DataType>
+      <DasType>INTEGER|0s</DasType>
       <NotNull>1</NotNull>
       <Position>4</Position>
     </column>
     <column id="508" parent="486" name="created_time">
-      <DataType>datetime|0s</DataType>
+      <DasType>datetime|0s</DasType>
       <NotNull>1</NotNull>
       <Position>5</Position>
     </column>
     <column id="509" parent="486" name="update_time">
-      <DataType>datetime|0s</DataType>
+      <DasType>datetime|0s</DasType>
       <NotNull>1</NotNull>
       <Position>6</Position>
     </column>
     <column id="510" parent="486" name="upload_path">
-      <DataType>varchar(300)|0s</DataType>
+      <DasType>varchar(300)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>7</Position>
     </column>
     <column id="511" parent="486" name="result_path">
-      <DataType>varchar(300)|0s</DataType>
+      <DasType>varchar(300)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>8</Position>
     </column>
     <column id="512" parent="486" name="params">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>9</Position>
     </column>
     <column id="513" parent="486" name="result">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>10</Position>
     </column>
@@ -1450,12 +1450,12 @@
       <UnderlyingIndexName>sqlite_autoindex_tb_ipv6_task_1</UnderlyingIndexName>
     </key>
     <column id="516" parent="487" name="name">
-      <DataType>varchar(100)|0s</DataType>
+      <DasType>varchar(100)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>1</Position>
     </column>
     <column id="517" parent="487" name="description">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>
@@ -1470,12 +1470,12 @@
       <UnderlyingIndexName>sqlite_autoindex_tb_vuln_cve_1</UnderlyingIndexName>
     </key>
     <column id="520" parent="488" name="name">
-      <DataType>varchar(100)|0s</DataType>
+      <DasType>varchar(100)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>1</Position>
     </column>
     <column id="521" parent="488" name="description">
-      <DataType>TEXT|0s</DataType>
+      <DasType>TEXT|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
     </column>

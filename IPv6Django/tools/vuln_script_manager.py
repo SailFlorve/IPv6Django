@@ -22,7 +22,7 @@ class VulnDatabaseManager:
 
     @staticmethod
     def load_scripts() -> list[VulnScriptModel]:
-        urlopen = urllib.request.urlopen("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=ipv6")
+        urlopen = urllib.request.urlopen("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=ipv6", timeout=15)
         ret_code = urlopen.getcode()
         if ret_code != 200:
             raise ConnectionError(f'请求更新错误: {ret_code}')

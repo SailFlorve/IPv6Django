@@ -36,4 +36,4 @@ class Constant:
 
     SCRIPT_DIR_PATH = '/usr/share/nmap/scripts'
 
-    VULN_DB_VERSION_INITIAL = 'original'
+    VULN_DB_VERSION_INITIAL = '0901.010000'

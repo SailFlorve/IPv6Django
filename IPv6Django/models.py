@@ -1,6 +1,8 @@
 from django.db import models
 from rest_framework import serializers
 
+from IPv6Django.constant.constant import Constant
+
 
 class IPv6TaskModel(models.Model):
     TYPE_GENERATE = 0
@@ -106,13 +108,16 @@ class ConfigModel(models.Model):
 
     @staticmethod
     def set_version(version: str):
-        model = ConfigModel.objects.get(id=1)
+        model, _ = ConfigModel.objects.get_or_create(id=1)
         model.vuln_version = version
         model.save()
 
     @staticmethod
-    def get_version():
-        return ConfigModel.objects.get(id=1).vuln_version
+    def get_version(default=Constant.VULN_DB_VERSION_INITIAL):
+        try:
+            return ConfigModel.objects.get(id=1).vuln_version
+        except Exception:
+            return default
 
 
 if __name__ == '__main__':
